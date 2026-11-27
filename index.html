@@ -210,24 +210,41 @@
   .modal .btn{flex:1 1 auto;min-height:54px;border:none;border-radius:12px;font-size:18px;font-family:var(--font);cursor:pointer;padding:12px 18px;}
   .modal .btn-primary{background:var(--button);color:#fff;}
   .modal .btn-secondary{background:var(--paper-2);color:var(--ink);border:1px solid var(--line);}
-  .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin:8px 0 16px;}
-  .legend .lg{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-weight:600;}
-  .legend .lg .dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;}
-  .service-row,.service-head{display:grid;grid-template-columns:minmax(0,1fr) 90px repeat(3,60px) 32px;gap:6px;align-items:center;}
-  .service-row{padding:8px 0;border-bottom:1px solid var(--line);}
-  .service-row input,.service-row select{font-family:var(--font);font-size:14px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);width:100%;min-width:0;}
-  .service-row input.num{text-align:right;font-variant-numeric:tabular-nums}
-  .service-row select{font-weight:700;cursor:pointer}
-  .service-row .del{background:none;border:none;color:var(--red);font-size:22px;cursor:pointer;padding:4px;line-height:1}
-  .service-head{font-size:12px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.5px;padding:4px 0 6px}
-  .service-value{display:block;min-width:0}
-  .service-value>span{display:none}
-  @media(max-width:520px){
-    .service-head{display:none}
-    .service-row{grid-template-columns:repeat(3,minmax(0,1fr)) 32px;padding:10px 0}
-    .service-row .service-title{grid-column:span 2}
-    .service-row select{grid-column:span 2}
-    .service-value>span{display:block;color:var(--ink-muted);font-size:12px;margin-bottom:3px}
+  #servicesModal{width:min(880px,calc(100% - 20px));max-height:calc(100% - 20px);max-height:calc(100dvh - 20px);padding:0;overflow:hidden}
+  #servicesModal[open]{display:flex;flex-direction:column}
+  .catalogue-header,.catalogue-actions{flex:none;padding:16px 20px;background:var(--toolbar)}
+  .catalogue-header{border-bottom:1px solid var(--toolbar-border)}
+  .catalogue-header h2,.catalogue-header p{margin:0}
+  .catalogue-header p{margin-top:5px;font-size:14px}
+  .catalogue-scroll{min-height:0;overflow:auto;overscroll-behavior:contain;padding:12px 18px;scrollbar-gutter:stable}
+  .catalogue-actions{border-top:1px solid var(--toolbar-border)}
+  .catalogue-actions .btns{margin:0;justify-content:space-between}
+  .catalogue-actions .btns .btn{font-size:15px}
+  #servicesMessage{margin:0 0 8px;font-size:14px}
+  .service-row{
+    display:grid;grid-template-columns:minmax(145px,1.55fr) minmax(138px,1fr) repeat(2,minmax(86px,.7fr)) minmax(82px,.62fr) 64px;
+    gap:10px;align-items:end;margin:0 0 8px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--paper-2);
+  }
+  .service-row:last-child{margin-bottom:0}
+  #servicesModal .service-field{min-width:0;margin:0}
+  .service-field>span{display:block;margin-bottom:4px;font-size:13px;color:var(--ink-muted)}
+  .service-row input,.service-row select{min-width:0;min-height:44px;padding:7px 9px;font-size:16px;font-weight:500}
+  .service-row .service-amount{text-align:right;font-variant-numeric:tabular-nums}
+  .service-row select{cursor:pointer}
+  .service-row .service-remove{padding-inline:6px;color:var(--red);font-size:14px}
+  .service-row input:invalid{border-color:var(--red)}
+  .service-row :is(input,select):focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+  @media(max-width:760px){
+    .catalogue-header,.catalogue-actions{padding:12px}
+    .catalogue-scroll{padding:8px;scrollbar-gutter:auto}
+    .service-row{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"name name remove" "category category category" "price cost minutes";gap:8px}
+    .service-field-name{grid-area:name}
+    .service-field-cat{grid-area:category}
+    .service-field-price{grid-area:price}
+    .service-field-cost{grid-area:cost}
+    .service-field-duration{grid-area:minutes}
+    .service-remove{grid-area:remove;justify-self:end}
+    .catalogue-actions .btns .btn{flex:1 1 auto;padding-inline:10px}
   }
   #searchClient{width:100%;font-family:var(--font);font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
 </style>
@@ -403,22 +420,23 @@
   </form>
 </dialog>
 
-<div class="modal" id="servicesModal" hidden>
-  <div class="card">
-    <h2>Catálogo de servicios</h2>
-    <p>Ajusta el precio, el coste y los minutos que ocupa cada servicio.</p>
-    <h3>Categorías</h3>
-    <div class="legend" id="catLegend"></div>
-    <div class="service-head">
-      <div>Servicio</div><div>Categoría</div><div style="text-align:right">Precio €</div><div style="text-align:right">Coste €</div><div style="text-align:right">Minutos</div><div></div>
-    </div>
+<dialog class="agenda-dialog" id="servicesModal" aria-labelledby="servicesTitle">
+  <div class="catalogue-header">
+    <h2 id="servicesTitle">Precios y categorías</h2>
+    <p>Precio es lo que cobras. Coste es lo que gastas en productos.</p>
+  </div>
+  <div class="catalogue-scroll" id="servicesScroll">
     <div id="servicesList"></div>
-    <button class="btn btn-secondary" id="addService" type="button" style="margin-top:14px;width:100%">+ Añadir servicio</button>
+    <p id="servicesEmpty" hidden>Añade un servicio para poder elegirlo al apuntar una cita.</p>
+  </div>
+  <div class="catalogue-actions">
+    <p id="servicesMessage" role="status" hidden></p>
     <div class="btns">
-      <button class="btn btn-primary" id="closeServices">Guardar y cerrar</button>
+      <button class="btn btn-secondary" id="addService" type="button">+ Añadir servicio</button>
+      <button class="btn btn-primary" id="closeServices" type="button" autofocus>Guardar y cerrar</button>
     </div>
   </div>
-</div>
+</dialog>
 
 <div class="modal" id="historyModal" hidden>
   <div class="card">
@@ -725,7 +743,8 @@
       summaryBody=document.getElementById('summaryBody'),searchClient=document.getElementById('searchClient'),
       searchResults=document.getElementById('searchResults'),
       servicesModal=document.getElementById('servicesModal'),servicesList=document.getElementById('servicesList'),
-      catLegend=document.getElementById('catLegend'),
+      servicesScroll=document.getElementById('servicesScroll'),servicesEmpty=document.getElementById('servicesEmpty'),
+      servicesMessage=document.getElementById('servicesMessage'),
       historyModal=document.getElementById('historyModal'),historyTitle=document.getElementById('historyTitle'),
       historyBody=document.getElementById('historyBody'),
       priceModal=document.getElementById('priceModal'),priceSub=document.getElementById('priceSub'),
@@ -1366,10 +1385,17 @@
   }
   document.getElementById('openSummary').addEventListener('click',openSummaryModal);
   document.getElementById('closeSummary').addEventListener('click',function(){summaryModal.hidden=true;});
-  document.getElementById('openServices').addEventListener('click',function(){summaryModal.hidden=true;renderServicesEditor();servicesModal.hidden=false;});
+  document.getElementById('openServices').addEventListener('click',function(){summaryModal.hidden=true;openServicesEditor();});
   document.getElementById('closeHistory').addEventListener('click',function(){historyModal.hidden=true;});
-  document.getElementById('openPrices').addEventListener('click',function(){renderServicesEditor();servicesModal.hidden=false;});
-  document.getElementById('closeServices').addEventListener('click',function(){servicesModal.hidden=true;updateSummaryBar();render();});
+  document.getElementById('openPrices').addEventListener('click',openServicesEditor);
+  document.getElementById('closeServices').addEventListener('click',function(){
+    var active=document.activeElement;
+    if(servicesList.contains(active)&&active.classList.contains('service-amount')) commitServiceAmount(active);
+    var invalid=servicesList.querySelector('input:invalid');
+    if(invalid){invalid.focus();invalid.reportValidity();return;}
+    servicesModal.close();
+  });
+  servicesModal.addEventListener('close',render);
 
   function clientName(text){
     var matched=matchServices(text); var t=' '+text+' ';
@@ -1440,64 +1466,140 @@
   });
   searchResults.addEventListener('click',function(e){ var btn=e.target.closest('[data-client]'); if(btn) openHistory(btn.dataset.client); });
 
-  function renderLegend(){
-    catLegend.innerHTML='';
-    Object.keys(CATEGORIES).forEach(function(k){
-      var c=CATEGORIES[k]; var el=document.createElement('div'); el.className='lg';
-      el.style.background=c.bg; el.style.color=c.fg; el.style.border='1px solid '+c.border;
-      el.innerHTML='<span class="dot" style="background:'+c.fg+'"></span>'+esc(c.label); catLegend.appendChild(el);
-    });
+  function openServicesEditor(){
+    servicesMessage.hidden=true;
+    servicesMessage.textContent='';
+    renderServicesEditor();
+    servicesModal.showModal();
+    servicesScroll.scrollTop=0;
+  }
+
+  var serviceAmountFormat=new Intl.NumberFormat('es-ES',{
+    useGrouping:false,minimumFractionDigits:2,maximumFractionDigits:20
+  });
+  function formatServiceAmount(value){
+    var amount=Number(value);
+    return serviceAmountFormat.format(Number.isFinite(amount)?amount:0);
+  }
+  function readServiceAmount(value){
+    var text=value.trim().replace(',','.');
+    if(!text) return 0;
+    if(!/^-?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text)) return null;
+    var amount=Number(text);
+    return Number.isFinite(amount)?amount:null;
+  }
+  function setServiceCategoryColour(control){
+    var colour=catColor(control.value);
+    control.style.background=colour.bg;
+    control.style.color=colour.fg;
+    control.style.borderColor=colour.border;
   }
 
   function renderServicesEditor(){
-    renderLegend(); servicesList.innerHTML='';
+    servicesList.replaceChildren();
+    servicesEmpty.hidden=services.length>0;
     services.forEach(function(s,idx){
-      var cc=catColor(s.cat||inferCat(s.name)); var row=document.createElement('div'); row.className='service-row';
-      var nameInp=document.createElement('input'); nameInp.type='text'; nameInp.className='service-title'; nameInp.value=s.name; nameInp.dataset.idx=idx; nameInp.dataset.field='name'; nameInp.setAttribute('aria-label','Nombre'); row.appendChild(nameInp);
-      var sel=document.createElement('select'); sel.dataset.idx=idx; sel.dataset.field='cat'; sel.setAttribute('aria-label','Categoría');
-      Object.keys(CATEGORIES).forEach(function(k){ var op=document.createElement('option'); op.value=k; op.textContent=CATEGORIES[k].label; if ((s.cat||'otros')===k) op.selected=true; sel.appendChild(op); });
-      sel.style.background=cc.bg; sel.style.color=cc.fg; sel.style.borderColor=cc.border; row.appendChild(sel);
-      [{field:'price',label:'Precio €'},{field:'cost',label:'Coste €'}].forEach(function(column){
+      var row=document.createElement('div');
+      row.className='service-row';
+      var name=document.createElement('input');
+      name.type='text';
+      name.value=s.name;
+      appendServiceControl(row,name,idx,'name','Servicio');
+      var category=document.createElement('select');
+      Object.keys(CATEGORIES).forEach(function(key){category.add(new Option(CATEGORIES[key].label,key));});
+      category.value=Object.hasOwn(CATEGORIES,s.cat)?s.cat:inferCat(s.name);
+      setServiceCategoryColour(category);
+      appendServiceControl(row,category,idx,'cat','Categoría');
+      [{field:'price',label:'Precio (€)'},{field:'cost',label:'Coste (€)'}].forEach(function(column){
         var input=document.createElement('input');
-        input.type='number'; input.step='0.01'; input.min='0'; input.className='num';
-        input.value=Number(s[column.field])||0;
+        input.type='text';
+        input.inputMode='decimal';
+        input.className='service-amount';
+        input.value=formatServiceAmount(s[column.field]);
         appendServiceControl(row,input,idx,column.field,column.label);
       });
       var duration=document.createElement('select');
       for(var min=15;min<=480;min+=15) duration.add(new Option(String(min),String(min)));
       duration.value=String(serviceMinutes(s.duration));
       appendServiceControl(row,duration,idx,'duration','Minutos');
-      var del=document.createElement('button'); del.type='button'; del.className='del'; del.dataset.idx=idx; del.setAttribute('aria-label','Borrar'); del.textContent='×'; row.appendChild(del);
+      var remove=document.createElement('button');
+      remove.type='button';
+      remove.className='btn btn-secondary service-remove';
+      remove.dataset.idx=idx;
+      remove.setAttribute('aria-label','Quitar '+(s.name||'servicio'));
+      remove.textContent='Quitar';
+      row.appendChild(remove);
       servicesList.appendChild(row);
     });
   }
   function appendServiceControl(row,control,index,field,label){
     var cell=document.createElement('label');
-    cell.className='service-value';
+    cell.className='service-field service-field-'+field;
     var caption=document.createElement('span');
     caption.textContent=label;
     control.dataset.idx=index;
     control.dataset.field=field;
-    control.setAttribute('aria-label',label);
     cell.append(caption,control);
     row.appendChild(cell);
   }
-  servicesList.addEventListener('input',function(e){
-    var el=e.target; if(!el.dataset||el.dataset.idx===undefined) return; var idx=parseInt(el.dataset.idx,10); var field=el.dataset.field; if(!services[idx]) return;
-    if(field==='name') services[idx].name=el.value; else if(field==='cat') services[idx].cat=el.value; else services[idx][field]=parseFloat(el.value)||0;
+  function updateServiceValue(control,value){
+    var service=services[Number(control.dataset.idx)],field=control.dataset.field;
+    if(!service||service[field]===value) return;
+    service[field]=value;
     saveServices();
-    if(field==='cat'){ var cc=catColor(el.value); el.style.background=cc.bg; el.style.color=cc.fg; el.style.borderColor=cc.border; }
-  });
-  servicesList.addEventListener('change',function(e){
-    var el=e.target; if(!el.dataset||el.dataset.idx===undefined) return;
-    if(el.dataset.field==='duration'){
-      var service=services[Number(el.dataset.idx)];
-      if(service){service.duration=serviceMinutes(el.value);saveServices();}
+  }
+  function checkServiceAmount(control){
+    var amount=readServiceAmount(control.value);
+    control.setCustomValidity(amount===null?'Escribe un importe como 12,50.':'');
+    return amount;
+  }
+  function commitServiceAmount(control){
+    var amount=checkServiceAmount(control);
+    if(amount===null) return;
+    var service=services[Number(control.dataset.idx)];
+    if(service&&control.value!==formatServiceAmount(service[control.dataset.field])) updateServiceValue(control,amount);
+    control.value=formatServiceAmount(amount);
+  }
+  servicesList.addEventListener('input',function(event){
+    var control=event.target;
+    if(control.dataset.field==='name'){
+      updateServiceValue(control,control.value);
+      control.closest('.service-row').querySelector('.service-remove')
+        .setAttribute('aria-label','Quitar '+(control.value||'servicio'));
+    }else if(control.classList.contains('service-amount')){
+      checkServiceAmount(control);
     }
-    if(el.dataset.field==='cat'){ var idx=parseInt(el.dataset.idx,10); if(services[idx]) services[idx].cat=el.value; saveServices(); var cc=catColor(el.value); el.style.background=cc.bg; el.style.color=cc.fg; el.style.borderColor=cc.border; }
   });
-  servicesList.addEventListener('click',function(e){ if(e.target.classList.contains('del')){ var idx=parseInt(e.target.dataset.idx,10); services.splice(idx,1); saveServices(); renderServicesEditor(); updateSummaryBar(); } });
-  document.getElementById('addService').addEventListener('click',function(){ services.push({id:'s'+Date.now(),name:'Nuevo servicio',price:0,cost:0,cat:'otros',duration:30}); saveServices(); renderServicesEditor(); var rows=servicesList.querySelectorAll('.service-row'); var last=rows[rows.length-1]; if(last){ var inp=last.querySelector('input'); if(inp){ inp.focus(); inp.select(); } } });
+  servicesList.addEventListener('change',function(event){
+    var control=event.target;
+    if(control.classList.contains('service-amount')){
+      commitServiceAmount(control);
+    }else if(control.dataset.field==='duration'){
+      updateServiceValue(control,serviceMinutes(control.value));
+    }else if(control.dataset.field==='cat'){
+      updateServiceValue(control,control.value);
+      setServiceCategoryColour(control);
+    }
+  });
+  servicesList.addEventListener('click',function(event){
+    var remove=event.target.closest('.service-remove');
+    if(!remove) return;
+    var index=Number(remove.dataset.idx);
+    services.splice(index,1);
+    saveServices();
+    renderServicesEditor();
+    updateSummaryBar();
+    var next=servicesList.children[Math.min(index,services.length-1)]?.querySelector('.service-remove');
+    (next||document.getElementById('addService')).focus();
+  });
+  document.getElementById('addService').addEventListener('click',function(){
+    services.push({id:'s'+Date.now(),name:'Nuevo servicio',price:0,cost:0,cat:'otros',duration:30});
+    saveServices();
+    renderServicesEditor();
+    var name=servicesList.lastElementChild.querySelector('[data-field="name"]');
+    name.focus();
+    name.select();
+  });
 
   function loadFirebaseScripts(){
     return new Promise(function(resolve,reject){
@@ -1703,7 +1805,7 @@
     if(catalog!==session.visibleCatalog){
       services=accountCatalog(catalog);
       session.visibleCatalog=catalog;
-      if(!servicesModal.hidden) renderServicesEditor();
+      if(servicesModal.open) renderServicesEditor();
     }
     accountCache(session);
     render();
