@@ -251,6 +251,7 @@
     <button class="precios" id="toggleTheme" type="button">Modo oscuro</button>
     <button class="precios" id="openTeam" type="button">Equipo</button>
     <button class="precios" id="installApp" type="button" aria-haspopup="dialog">Instalar</button>
+    <button class="precios" id="openAccount" type="button" aria-haspopup="dialog" hidden>Entrar</button>
     <label id="professionalControl" for="professionalSelect" hidden>Profesional
       <select id="professionalSelect"></select>
     </label>
@@ -437,6 +438,39 @@
   </form>
 </dialog>
 
+<dialog class="agenda-dialog" id="accountDialog" aria-labelledby="accountTitle">
+  <h2 id="accountTitle">Mi agenda</h2>
+  <p id="accountHint">Usa el mismo correo en el móvil y el ordenador para ver las mismas citas.</p>
+  <form id="accountForm">
+    <div class="field">
+      <label for="accountEmail">Correo electrónico</label>
+      <input id="accountEmail" type="email" autocomplete="username" inputmode="email" maxlength="254" required>
+    </div>
+    <div class="field">
+      <label for="accountPassword">Contraseña</label>
+      <input id="accountPassword" type="password" autocomplete="current-password" required>
+    </div>
+    <div class="btns">
+      <button class="btn btn-primary" id="signInAccount" type="submit">Entrar</button>
+      <button class="btn btn-secondary" id="createAccount" type="submit">Crear cuenta</button>
+    </div>
+    <button class="btn" id="resetAccount" type="button">Recuperar contraseña</button>
+  </form>
+  <div id="accountSessionActions" hidden>
+    <div class="btns" id="verifyAccountActions" hidden>
+      <button class="btn btn-primary" id="checkAccountEmail" type="button">Ya he confirmado mi correo</button>
+      <button class="btn btn-secondary" id="resendAccountEmail" type="button">Volver a enviar el correo</button>
+    </div>
+    <div class="btns">
+      <button class="btn btn-secondary" id="signOutAccount" type="button">Salir de mi cuenta</button>
+    </div>
+  </div>
+  <p id="accountMessage" role="status" hidden></p>
+  <form method="dialog" class="btns">
+    <button class="btn btn-secondary">Cerrar</button>
+  </form>
+</dialog>
+
 <script>
 (function(){
   'use strict';
@@ -460,6 +494,7 @@
   var KEY_MAIN='atelier.agenda.v1', KEY_CITY='atelier.ciudad.v1', KEY_WX='atelier.tiempo.v1',
       KEY_CFG='atelier.firebase.v1', KEY_PENDING='atelier.pending.v1', KEY_HOURS='atelier.hours.v1',
       KEY_SERVICES='atelier.services.v1';
+  var accountSession=null;
   var BASE_START=8, BASE_END=21;
   var DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   var MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -513,14 +548,18 @@
     return 'otros';
   }
 
-  var services = (function(){
+  function localServices(){
     try {
       var s = JSON.parse(localStorage.getItem(KEY_SERVICES));
-      if (Array.isArray(s) && s.length){ s.forEach(function(sv){ if (!sv.cat) sv.cat = inferCat(sv.name); }); return s; }
+      if (Array.isArray(s)){ s.forEach(function(sv){ if (!sv.cat) sv.cat = inferCat(sv.name); }); return s; }
     } catch(_){}
     return JSON.parse(JSON.stringify(DEFAULT_SERVICES));
-  })();
-  function saveServices(){ try { localStorage.setItem(KEY_SERVICES, JSON.stringify(services)); } catch(_){} }
+  }
+  var services=localServices();
+  function saveServices(){
+    if(accountSession){saveAccountCatalog();return;}
+    try { localStorage.setItem(KEY_SERVICES, JSON.stringify(services)); } catch(_){}
+  }
 
   function matchServices(text){
     var t=' '+normalize(text)+' ';
@@ -610,11 +649,13 @@
     }
   }
   function saveTeamValues(values){
+    if(accountSession) return saveAccountTeam(values);
     Object.keys(values).forEach(function(path){applyTeamValue(team,path,values[path]);});
     Object.assign(teamPending,values);
     writeObject(TEAM_KEY,team);
     writeObject(TEAM_PENDING_KEY,teamPending);
     pushTeamPending();
+    return true;
   }
 
   function normalizeAppointment(v){
@@ -739,7 +780,7 @@
     teamDialog.showModal();
   });
   document.getElementById('closeTeam').addEventListener('click',function(){teamDialog.close();});
-  document.getElementById('teamForm').addEventListener('submit',function(event){
+  document.getElementById('teamForm').addEventListener('submit',async function(event){
     event.preventDefault();
     refreshLocalAppointments();
     var values={},names=Object.assign({},team.members);
@@ -764,8 +805,9 @@
       return;
     }
     values.enabled=teamEnabled.checked||Boolean(addedId);
+    var saved=saveTeamValues(values);
+    if(saved!==true&&!(await saved)) return;
     if(addedId) selectProfessional(addedId);
-    saveTeamValues(values);
     teamDialog.close();
     render();
   });
@@ -782,12 +824,15 @@
   function endMinutes(time,appt){return minutesAt(time)+serviceMinutes(appt?.service?.duration);}
   function formatTime(minutes){return pad(Math.floor(minutes/60))+':'+pad(minutes%60);}
   function findOverlap(iso,time,duration,ignoreTime,professional=activeProfessional()){
+    return overlapOnDay(calendarFor(professional)[iso],time,duration,ignoreTime);
+  }
+  function overlapOnDay(day,time,duration,ignoreTime){
     var start=minutesAt(time);
     var end=start+duration;
-    for(var candidate of Object.keys(calendarFor(professional)[iso]||{}).sort()){
+    for(var candidate of Object.keys(day||{}).sort()){
       if(candidate===ignoreTime||minutesAt(candidate)>=end) continue;
-      var appt=appointmentAt(iso,candidate,professional);
-      if(appt&&endMinutes(candidate,appt)>start) return {time:candidate,appt:appt};
+      var appt=normalizeAppointment(day[candidate]);
+      if(appt?.text&&endMinutes(candidate,appt)>start) return {time:candidate,appt:appt};
     }
     return null;
   }
@@ -949,6 +994,7 @@
   }
 
   function refreshLocalAppointments(){
+    if(accountSession) return;
     if(!fbRef) data=readObject(KEY_MAIN)||data;
     if(!teamRef){
       team=normalizeTeam(readObject(TEAM_KEY)||team);
@@ -1000,13 +1046,14 @@
     openAppointment(slot.bookedTime,true,slot.iso,null,slot.professional);
   });
 
-  resetAttendance.addEventListener('click',function(){
+  resetAttendance.addEventListener('click',async function(){
     refreshLocalAppointments();
     var slot=occupiedSlot,appt=appointmentAt(slot.iso,slot.bookedTime,slot.professional);
     if(!appt) return;
     delete appt.arrivedAt;
     delete appt.attendedAt;
-    saveAppointment(slot.iso,slot.bookedTime,appt,slot.professional);
+    var saved=saveAppointment(slot.iso,slot.bookedTime,appt,slot.professional);
+    if(saved!==true&&!(await saved)) return;
     occupiedDialog.close();
   });
 
@@ -1028,6 +1075,7 @@
   document.getElementById('closeOccupied').addEventListener('click',function(){occupiedDialog.close();});
 
   function saveAppointment(iso,time,appointment,professional=activeProfessional()){
+    if(accountSession) return saveAccountAppointment(iso,time,appointment,professional);
     if(professional===MAIN_PROFESSIONAL){
       setCalendarSlot(data,iso,time,appointment);
       persistLocal();
@@ -1040,12 +1088,13 @@
       saveTeamValues(values);
     }
     render();
+    return true;
   }
 
   var arrivalDialog=document.getElementById('arrivalDialog');
   document.getElementById('closeArrival').addEventListener('click',function(){arrivalDialog.close();});
 
-  function markArrival(time){
+  async function markArrival(time){
     var iso=isoDate(currentDate);
     refreshLocalAppointments();
     var professional=activeProfessional();
@@ -1058,7 +1107,8 @@
       return;
     }
     appt.arrivedAt=now.getTime();
-    saveAppointment(iso,time,appt,professional);
+    var saved=saveAppointment(iso,time,appt,professional);
+    if(saved!==true&&!(await saved)) return;
     if(iso!==isoDate(now)||now.getHours()*60+now.getMinutes()>=minutesAt(time)) return;
     var previous=Object.keys(calendarFor(professional)[iso]||{}).sort().reverse().find(function(candidate){
       var earlier=appointmentAt(iso,candidate,professional);
@@ -1144,7 +1194,7 @@
 
   appointmentService.addEventListener('change',refreshAppointmentTotal);
   appointmentClient.addEventListener('input',refreshAppointmentTotal);
-  appointmentForm.addEventListener('submit',function(event){
+  appointmentForm.addEventListener('submit',async function(event){
     event.preventDefault();
     if(!appointmentEdit) return;
     var text=appointmentClient.value.replace(/\s+/g,' ').trim();
@@ -1189,22 +1239,25 @@
     var amounts=appointmentAmounts(draft);
     draft.price=amounts.price;
     draft.cost=amounts.cost;
+    var saved=saveAppointment(iso,time,draft,professional);
+    if(saved!==true&&!(await saved)) return;
     appointmentDialog.close();
-    saveAppointment(iso,time,draft,professional);
   });
   document.getElementById('cancelAppointment').addEventListener('click',function(){appointmentDialog.close();});
-  deleteAppointment.addEventListener('click',function(){
+  deleteAppointment.addEventListener('click',async function(){
     if(!appointmentEdit||!window.confirm('¿Borrar esta cita?')) return;
     var iso=appointmentEdit.iso,time=appointmentEdit.time,professional=appointmentEdit.professional;
     refreshLocalAppointments();
     var current=appointmentAt(iso,time,professional);
-    appointmentDialog.close();
     if(current?.text!==appointmentEdit.previous?.text){
+      appointmentDialog.close();
       render();
       if(current) openOccupiedSlot(iso,time,current,null,time,professional);
       return;
     }
-    saveAppointment(iso,time,null,professional);
+    var saved=saveAppointment(iso,time,null,professional);
+    if(saved!==true&&!(await saved)) return;
+    appointmentDialog.close();
   });
 
   var priceEdit={iso:null,time:null};
@@ -1216,14 +1269,15 @@
     priceInput.value=amounts.price; costInput.value=amounts.cost;
     priceModal.hidden=false; setTimeout(function(){priceInput.focus();priceInput.select();},0);
   }
-  document.getElementById('savePrice').addEventListener('click',function(){
+  document.getElementById('savePrice').addEventListener('click',async function(){
     var iso=priceEdit.iso,time=priceEdit.time; if(!iso||!time) return;
     refreshLocalAppointments();
     var appt=appointmentAt(iso,time,priceEdit.professional); if(!appt) return;
     var p=parseNum(priceInput.value); if(p===null) p=0; var c=parseNum(costInput.value); if(c===null) c=0;
     appt.price=p; appt.cost=c;
+    var saved=saveAppointment(iso,time,appt,priceEdit.professional);
+    if(saved!==true&&!(await saved)) return;
     priceModal.hidden=true;
-    saveAppointment(iso,time,appt,priceEdit.professional);
     priceEdit={iso:null,time:null};
   });
   document.getElementById('cancelPrice').addEventListener('click',function(){ priceModal.hidden=true; priceEdit={iso:null,time:null}; });
@@ -1245,7 +1299,7 @@
   payMethod.addEventListener('change',function(){
     confirmPay.textContent=payMethod.value==='pendiente'?'Dejar pendiente':'Confirmar cobro';
   });
-  document.getElementById('payForm').addEventListener('submit',function(event){
+  document.getElementById('payForm').addEventListener('submit',async function(event){
     event.preventDefault();
     if(!payEdit||!payMethod.value) return;
     var iso=payEdit.iso,time=payEdit.time;
@@ -1256,7 +1310,8 @@
       appt.method=appt.paid?payMethod.value:null;
       if(appt.paid) appt.paidAt=appt.paidAt||Date.now();
       else delete appt.paidAt;
-      saveAppointment(iso,time,appt,payEdit.professional);
+      var saved=saveAppointment(iso,time,appt,payEdit.professional);
+      if(saved!==true&&!(await saved)) return;
     }
     payModal.close();
   });
@@ -1510,6 +1565,7 @@
     var reference=database.ref('atelier/equipo');
     try{
       await reference.once('value');
+      if(accountSession) return;
       teamRef=reference;
       reference.on('value',function(snapshot){
         if(teamRef!==reference) return;
@@ -1526,12 +1582,16 @@
   }
   async function connectToFirebase(cfg){
     await loadFirebaseScripts();
+    if(accountSession) return;
     teamRef=null;
     try{ if(window.firebase.apps&&window.firebase.apps.length) await window.firebase.app().delete(); }catch(_){}
+    if(accountSession) return;
     window.firebase.initializeApp(cfg);
     var database=window.firebase.database();
-    fbRef=database.ref('atelier/agenda');
-    var snap=await fbRef.once('value');
+    var reference=database.ref('atelier/agenda');
+    fbRef=reference;
+    var snap=await reference.once('value');
+    if(reference!==fbRef) return;
     var remote=snap.val()||{};
     var remoteCount=0;
     Object.keys(remote).forEach(function(d){ if(remote[d]) remoteCount+=Object.keys(remote[d]).length; });
@@ -1546,9 +1606,11 @@
     } else {
       var localCount=0;
       Object.keys(data).forEach(function(d){ localCount+=Object.keys(data[d]||{}).length; });
-      if(localCount>0) await fbRef.set(data);
+      if(localCount>0) await reference.set(data);
     }
-    fbRef.on('value',function(s){
+    if(reference!==fbRef) return;
+    reference.on('value',function(s){
+      if(reference!==fbRef) return;
       var v=s.val()||{};
       var merged=JSON.parse(JSON.stringify(v));
       for(var key in pending){
@@ -1563,8 +1625,11 @@
     connectTeam(database);
   }
 
-  (async function(){ 
-    try{ var cfgText=localStorage.getItem(KEY_CFG); if(cfgText){ await connectToFirebase(JSON.parse(cfgText)); } }catch(_){} 
+  async function resumeLegacyAgenda(){
+    try{var cfgText=localStorage.getItem(KEY_CFG);if(cfgText) await connectToFirebase(JSON.parse(cfgText));}catch(_){}
+  }
+  (function(){
+    resumeLegacyAgenda();
     setInterval(pushPending,15000); 
     window.addEventListener('online',pushPending); 
     setInterval(pushTeamPending,15000);
@@ -1572,6 +1637,356 @@
   })();
 
   // --- FIN FIREBASE ---
+
+  var secureConfig={
+    "apiKey": "AIzaSyBEFv4K7WRdYKesyAXnFXFV6tFhAvXQFr0",
+    "authDomain": "mi-peluqueria-34669.firebaseapp.com",
+    "projectId": "mi-peluqueria-34669",
+    "appId": "1:211601853281:web:a7a9d8cf7e0027a428d320",
+    "databaseURL": "https://mi-peluqueria-34669-default-rtdb.europe-west1.firebasedatabase.app"
+  };
+  var ACCOUNT_ACTIVE_KEY='atelier.cuenta.activa.v1';
+  var accountReturn={url:'https://mi-peluqueria.github.io/'};
+  var cloudAuth, cloudDatabase, authApi, databaseApi, cloudUser, accountLoad, accountBusy=false;
+  var accountButton=document.getElementById('openAccount'),
+      accountDialog=document.getElementById('accountDialog'),
+      accountForm=document.getElementById('accountForm'),
+      accountEmail=document.getElementById('accountEmail'),
+      accountPassword=document.getElementById('accountPassword'),
+      accountHint=document.getElementById('accountHint'),
+      accountMessage=document.getElementById('accountMessage'),
+      accountActions=document.getElementById('accountSessionActions'),
+      verifyActions=document.getElementById('verifyAccountActions');
+
+  function showAccountMessage(message){
+    accountMessage.textContent=message;
+    accountMessage.hidden=!message;
+  }
+  function showAccountWriteError(message){
+    var output=document.querySelector('dialog[open] [role="status"],dialog[open] #occupiedMessage,dialog[open] #paySub')||noticeEl;
+    output.textContent=message;
+    output.hidden=false;
+  }
+  function renderAccount(){
+    accountButton.textContent=cloudUser?'Mi cuenta':'Entrar';
+    accountForm.hidden=Boolean(cloudUser);
+    accountActions.hidden=!cloudUser;
+    verifyActions.hidden=!cloudUser||cloudUser.emailVerified;
+    if(!cloudUser){
+      accountHint.textContent='Usa el mismo correo en cada dispositivo. Si ya tienes citas, entra primero desde el dispositivo donde las apuntaste.';
+    }else if(!cloudUser.emailVerified){
+      accountHint.textContent='Confirma tu correo para que podamos abrir tu agenda privada.';
+    }else if(accountSession?.ready&&accountSession.connected){
+      accountHint.textContent='Tus citas se sincronizan automáticamente en los dispositivos donde has entrado.';
+    }else{
+      accountHint.textContent='Esperando conexión con tu agenda.';
+    }
+  }
+  function accountCache(session){
+    writeObject(session.cacheKey,{snapshot:session.snapshot,catalogDraft:session.catalogDraft});
+  }
+  function accountCatalog(json){
+    try{
+      var stored=JSON.parse(json);
+      if(Array.isArray(stored)) return stored.filter(function(service){
+        return service&&typeof service.id==='string'&&typeof service.name==='string';
+      });
+    }catch(_){}
+    return JSON.parse(JSON.stringify(DEFAULT_SERVICES));
+  }
+  function applyAccountSnapshot(session,value){
+    if(value?.version!==1) return;
+    session.snapshot=value;
+    data=value.agenda||{};
+    team=normalizeTeam(value.equipo);
+    var catalog=session.catalogDraft||value.catalogo;
+    if(catalog!==session.visibleCatalog){
+      services=accountCatalog(catalog);
+      session.visibleCatalog=catalog;
+      if(!servicesModal.hidden) renderServicesEditor();
+    }
+    accountCache(session);
+    render();
+  }
+  function closeAccountSession(){
+    if(!accountSession) return;
+    var session=accountSession;
+    accountSession=null;
+    session.stopConnection?.();
+    session.stopData?.();
+    if(session.catalogDraft) writeObject(session.cacheKey,{catalogDraft:session.catalogDraft});
+    else try{localStorage.removeItem(session.cacheKey);}catch(_){}
+    data=readObject(KEY_MAIN)||{};
+    team=normalizeTeam(readObject(TEAM_KEY));
+    services=localServices();
+    resumeLegacyAgenda();
+    render();
+  }
+  function selectAccount(user){
+    cloudUser=user;
+    if(!user?.emailVerified){
+      closeAccountSession();
+      try{
+        if(user) localStorage.setItem(ACCOUNT_ACTIVE_KEY,'1');
+        else localStorage.removeItem(ACCOUNT_ACTIVE_KEY);
+      }catch(_){}
+      renderAccount();
+      return;
+    }
+    if(accountSession?.uid===user.uid){renderAccount();return;}
+    closeAccountSession();
+    if(fbRef) fbRef.off('value');
+    if(teamRef) teamRef.off('value');
+    fbRef=teamRef=null;
+    var cacheKey='atelier.cuenta.v1.'+user.uid;
+    var stored=readObject(cacheKey)||{};
+    var session={
+      uid:user.uid,
+      cacheKey:cacheKey,
+      reference:databaseApi.ref(cloudDatabase,'agendas/'+user.uid),
+      catalogDraft:stored.catalogDraft||'',
+      seed:{version:1,agenda:readObject(KEY_MAIN)||{},equipo:normalizeTeam(readObject(TEAM_KEY)),catalogo:JSON.stringify(localServices())}
+    };
+    accountSession=session;
+    try{localStorage.setItem(ACCOUNT_ACTIVE_KEY,'1');}catch(_){}
+    applyAccountSnapshot(session,stored.snapshot||{version:1,catalogo:JSON.stringify(DEFAULT_SERVICES)});
+    session.stopConnection=databaseApi.onValue(databaseApi.ref(cloudDatabase,'.info/connected'),function(snapshot){
+      if(accountSession!==session) return;
+      session.connected=snapshot.val()===true;
+      if(session.connected){
+        startAccountSync(session);
+        flushAccountCatalog(session);
+      }
+      renderAccount();
+    });
+    renderAccount();
+  }
+  async function startAccountSync(session){
+    if(session.ready||session.starting) return;
+    session.starting=true;
+    try{
+      var snapshot=await databaseApi.get(session.reference);
+      if(accountSession!==session) return;
+      if(!snapshot.exists()){
+        var created=await databaseApi.runTransaction(session.reference,function(current){
+          if(current===null) return session.seed;
+        },{applyLocally:false});
+        snapshot=created.snapshot;
+      }
+      if(accountSession!==session) return;
+      if(snapshot.val()?.version!==1) throw new Error('Formato de agenda desconocido');
+      session.ready=true;
+      applyAccountSnapshot(session,snapshot.val());
+      session.stopData=databaseApi.onValue(session.reference,function(value){
+        if(accountSession===session) applyAccountSnapshot(session,value.val());
+      },function(){
+        if(accountSession===session){
+          session.ready=false;
+          showAccountMessage('No se puede acceder a tu agenda. Vuelve a entrar con tu correo.');
+          renderAccount();
+        }
+      });
+      renderAccount();
+      flushAccountCatalog(session);
+    }catch(_){
+      if(accountSession===session) showAccountMessage('No se ha podido abrir la agenda compartida. Inténtalo cuando tengas conexión.');
+    }finally{session.starting=false;}
+  }
+  function appointmentStamp(value){
+    var a=normalizeAppointment(value);
+    if(!a) return '';
+    var service=a.service;
+    return JSON.stringify([a.text,a.client,a.price,a.cost,a.paid,a.method,a.paidAt,a.arrivedAt,a.attendedAt,
+      service&&[service.id,service.name,service.cat,service.price,service.cost,service.duration]]);
+  }
+  async function saveAccountAppointment(iso,time,appointment,professional){
+    var session=accountSession;
+    if(!session.ready||!session.connected){
+      showAccountWriteError('Recupera la conexión para guardar esta cita en tu agenda.');
+      return false;
+    }
+    if(session.savingAppointment) return false;
+    session.savingAppointment=true;
+    var path=(professional===MAIN_PROFESSIONAL?'agenda/':'equipo/calendars/'+professional+'/')+iso;
+    var reference=databaseApi.child(session.reference,path);
+    var before=calendarFor(professional)[iso]?.[time];
+    var stamp=appointmentStamp(before),overlap;
+    try{
+      var result=await databaseApi.runTransaction(reference,function(day){
+        var current=day?.[time];
+        overlap=null;
+        if(appointmentStamp(current)!==stamp) return;
+        var duration=serviceMinutes(appointment?.service?.duration);
+        if(appointment&&(!current||duration!==serviceMinutes(normalizeAppointment(current)?.service?.duration))){
+          overlap=overlapOnDay(day,time,duration,time);
+          if(overlap) return;
+        }
+        var next=Object.assign({},day);
+        if(appointment) next[time]=appointment;
+        else delete next[time];
+        return Object.keys(next).length?next:null;
+      },{applyLocally:false});
+      if(accountSession!==session) return false;
+      if(!result.committed){
+        showAccountWriteError(overlap?'Otra cita ocupa parte de ese horario. Elige otro hueco.':'Esta cita cambió en otro dispositivo. Abre la cita actual antes de editar.');
+        return false;
+      }
+      return true;
+    }catch(_){
+      if(accountSession===session) showAccountWriteError('No se pudo guardar. Comprueba la conexión e inténtalo de nuevo.');
+      return false;
+    }finally{session.savingAppointment=false;}
+  }
+  async function saveAccountTeam(values){
+    var session=accountSession;
+    if(!session.ready||!session.connected){
+      showAccountWriteError('Recupera la conexión para guardar los cambios del equipo.');
+      return false;
+    }
+    if(session.savingTeam) return false;
+    session.savingTeam=true;
+    try{
+      await databaseApi.update(databaseApi.child(session.reference,'equipo'),values);
+      return accountSession===session;
+    }catch(_){
+      if(accountSession===session) showAccountWriteError('No se pudieron guardar los cambios del equipo.');
+      return false;
+    }finally{session.savingTeam=false;}
+  }
+  function saveAccountCatalog(){
+    var session=accountSession;
+    session.visibleCatalog=session.catalogDraft=JSON.stringify(services);
+    accountCache(session);
+    flushAccountCatalog(session);
+  }
+  async function flushAccountCatalog(session){
+    if(!session.ready||!session.connected||!session.catalogDraft||session.flushingCatalog) return;
+    session.flushingCatalog=true;
+    try{
+      while(accountSession===session&&session.connected&&session.catalogDraft){
+        var catalog=session.catalogDraft;
+        await databaseApi.set(databaseApi.child(session.reference,'catalogo'),catalog);
+        if(accountSession!==session) return;
+        if(session.catalogDraft===catalog) session.catalogDraft='';
+        accountCache(session);
+      }
+    }catch(_){
+      if(accountSession===session) showAccountWriteError('Las tarifas se guardaron en este dispositivo. La agenda volverá a intentar compartirlas al recuperar la conexión.');
+    }finally{session.flushingCatalog=false;}
+  }
+  function loadAccount(){
+    if(!accountLoad){
+      var sdk='https://www.gstatic.com/firebasejs/13.4.0/';
+      accountLoad=Promise.all([
+        import(sdk+'firebase-app.js'),
+        import(sdk+'firebase-auth.js'),
+        import(sdk+'firebase-database.js')
+      ]).then(function([appApi,authModule,databaseModule]){
+        authApi=authModule;
+        databaseApi=databaseModule;
+        var app=appApi.initializeApp(secureConfig,'mi-peluqueria-privada');
+        cloudAuth=authApi.getAuth(app);
+        cloudAuth.languageCode='es';
+        cloudDatabase=databaseApi.getDatabase(app);
+        authApi.onAuthStateChanged(cloudAuth,function(user){
+          selectAccount(user);
+          if(user&&!user.emailVerified) checkAccountEmail(true).catch(function(){});
+        });
+      }).catch(function(error){accountLoad=null;throw error;});
+    }
+    return accountLoad;
+  }
+  async function checkAccountEmail(quiet){
+    var user=cloudUser;
+    if(!user||user.emailVerified) return;
+    await authApi.reload(user);
+    if(user!==cloudAuth.currentUser) return;
+    if(user.emailVerified){
+      await authApi.getIdToken(user,true);
+      if(user===cloudAuth.currentUser){
+        showAccountMessage('');
+        selectAccount(user);
+      }
+    }else if(!quiet){
+      showAccountMessage('El correo aún está pendiente de confirmar. Abre el enlace que has recibido y vuelve aquí.');
+    }
+  }
+  async function withAccount(action){
+    if(accountBusy) return;
+    accountBusy=true;
+    accountForm.setAttribute('aria-busy','true');
+    showAccountMessage('Un momento…');
+    try{
+      await loadAccount();
+      await action();
+    }catch(error){
+      var message='No se ha podido conectar. Comprueba que tienes Internet e inténtalo de nuevo.';
+      if(/invalid-credential|user-not-found|wrong-password/.test(error.code||'')) message='Revisa el correo y la contraseña o pulsa Recuperar contraseña.';
+      if(error.code==='auth/email-already-in-use') message='Si ya tienes cuenta, pulsa Entrar o Recuperar contraseña.';
+      if(error.code==='auth/weak-password') message='Elige una contraseña de al menos seis caracteres.';
+      if(error.code==='auth/too-many-requests') message='Espera unos minutos antes de volver a intentarlo.';
+      showAccountMessage(message);
+    }finally{
+      accountBusy=false;
+      accountForm.removeAttribute('aria-busy');
+    }
+  }
+  if(secureConfig){
+    accountButton.hidden=false;
+    accountButton.addEventListener('click',function(){
+      showAccountMessage('');
+      renderAccount();
+      accountDialog.showModal();
+      loadAccount().catch(function(){showAccountMessage('Comprueba que tienes conexión a Internet.');});
+      checkAccountEmail(true).catch(function(){});
+    });
+    accountDialog.addEventListener('close',function(){accountPassword.value='';});
+    accountForm.addEventListener('submit',function(event){
+      event.preventDefault();
+      var email=accountEmail.value.trim(),password=accountPassword.value;
+      var isNew=event.submitter?.id==='createAccount';
+      withAccount(async function(){
+        var attempt;
+        if(isNew){
+          attempt=await authApi.createUserWithEmailAndPassword(cloudAuth,email,password);
+          await authApi.sendEmailVerification(attempt.user,accountReturn);
+          showAccountMessage('Te hemos enviado un correo para confirmar tu cuenta.');
+        }else{
+          attempt=await authApi.signInWithEmailAndPassword(cloudAuth,email,password);
+          showAccountMessage('');
+          if(attempt.user.emailVerified&&accountDialog.open) accountDialog.close();
+        }
+        accountPassword.value='';
+      });
+    });
+    document.getElementById('checkAccountEmail').addEventListener('click',function(){
+      withAccount(function(){return checkAccountEmail(false);});
+    });
+    document.getElementById('resendAccountEmail').addEventListener('click',function(){
+      withAccount(async function(){
+        if(!cloudUser||cloudUser.emailVerified) return;
+        await authApi.sendEmailVerification(cloudUser,accountReturn);
+        showAccountMessage('Te hemos enviado otro correo para confirmar tu cuenta.');
+      });
+    });
+    document.getElementById('resetAccount').addEventListener('click',function(){
+      if(!accountEmail.reportValidity()) return;
+      var email=accountEmail.value.trim();
+      withAccount(async function(){
+        await authApi.sendPasswordResetEmail(cloudAuth,email,accountReturn);
+        showAccountMessage('Si hay una cuenta con ese correo, recibirás un enlace para cambiar la contraseña.');
+      });
+    });
+    document.getElementById('signOutAccount').addEventListener('click',function(){
+      withAccount(async function(){
+        await authApi.signOut(cloudAuth);
+        showAccountMessage('');
+        accountDialog.close();
+      });
+    });
+    window.addEventListener('focus',function(){checkAccountEmail(true).catch(function(){});});
+    try{if(localStorage.getItem(ACCOUNT_ACTIVE_KEY)) loadAccount().catch(function(){});}catch(_){}
+  }
 
   var ciudad=(function(){
     try{
