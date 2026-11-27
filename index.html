@@ -65,6 +65,10 @@
   .slot .pay-btn{font-family:var(--font);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;margin-left:auto;border:2px solid;background:#fff;color:var(--ink);}
   .slot .pay-btn:focus-visible{outline:3px solid var(--violet);outline-offset:2px;}
   .slot .service-name{display:block;color:var(--ink-muted);font-size:14px}
+  .slot .reserved{color:#674477;font-size:15px;font-weight:600}
+  .slot .arrival-btn{font:inherit;padding:8px 12px;border:1px solid #cbb9d2;border-radius:999px;background:#fff;color:#674477;cursor:pointer;font-weight:650}
+  .slot .arrival-btn:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+  .slot .arrival-status{color:var(--green);font-weight:650}
   .slot.now{background:var(--violet-soft)}
   .slot.now .time{color:var(--violet);font-weight:700}
   .slot.now .time::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--violet);margin-right:8px;vertical-align:middle;}
@@ -154,12 +158,22 @@
   .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin:8px 0 16px;}
   .legend .lg{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-weight:600;}
   .legend .lg .dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;}
-  .service-row{display:grid;grid-template-columns:minmax(0,1fr) 90px 60px 60px 32px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);}
+  .service-row,.service-head{display:grid;grid-template-columns:minmax(0,1fr) 90px repeat(3,60px) 32px;gap:6px;align-items:center;}
+  .service-row{padding:8px 0;border-bottom:1px solid var(--line);}
   .service-row input,.service-row select{font-family:var(--font);font-size:14px;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%;min-width:0;}
   .service-row input.num{text-align:right;font-variant-numeric:tabular-nums}
   .service-row select{font-weight:700;cursor:pointer}
   .service-row .del{background:none;border:none;color:var(--red);font-size:22px;cursor:pointer;padding:4px;line-height:1}
-  .service-head{display:grid;grid-template-columns:minmax(0,1fr) 90px 60px 60px 32px;gap:6px;font-size:12px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.5px;padding:4px 0 6px}
+  .service-head{font-size:12px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.5px;padding:4px 0 6px}
+  .service-value{display:block;min-width:0}
+  .service-value>span{display:none}
+  @media(max-width:520px){
+    .service-head{display:none}
+    .service-row{grid-template-columns:repeat(3,minmax(0,1fr)) 32px;padding:10px 0}
+    .service-row .service-title{grid-column:span 2}
+    .service-row select{grid-column:span 2}
+    .service-value>span{display:block;color:var(--ink-muted);font-size:12px;margin-bottom:3px}
+  }
   #searchClient{width:100%;font-family:var(--font);font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
   .sync-btn{position:fixed;bottom:16px;right:16px;background:var(--paper-2);border:1px solid var(--line);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;opacity:0.5;z-index:50;}
 </style>
@@ -224,6 +238,7 @@
     </div>
     <div class="appointment-total">
       <div>Total <output id="appointmentTotal" aria-live="polite"></output></div>
+      <small id="appointmentLength"></small>
       <small id="appointmentPayment"></small>
     </div>
     <p id="appointmentNotice" hidden>El cambio de servicio dejará la cita pendiente de cobro.</p>
@@ -245,7 +260,16 @@
     <button class="btn btn-secondary" type="button" id="closeOccupied">Cerrar</button>
     <button class="btn btn-secondary" type="button" id="viewOccupied">Ver cita</button>
     <button class="btn btn-secondary" type="button" id="editOccupied" hidden>Editar cita</button>
+    <button class="btn btn-secondary" type="button" id="resetAttendance" hidden>Restablecer asistencia</button>
     <button class="btn btn-primary" type="button" id="nextFreeSlot">Buscar siguiente hueco</button>
+  </div>
+</dialog>
+
+<dialog class="agenda-dialog" id="arrivalDialog" aria-labelledby="arrivalTitle">
+  <h2 id="arrivalTitle">Hay una cita anterior</h2>
+  <p id="arrivalMessage"></p>
+  <div class="btns">
+    <button class="btn btn-primary" type="button" id="closeArrival">Entendido</button>
   </div>
 </dialog>
 
@@ -303,11 +327,11 @@
 <div class="modal" id="servicesModal" hidden>
   <div class="card">
     <h2>Catálogo de servicios</h2>
-    <p>Precio, coste y categoría. El color de cada fila indica la categoría.</p>
+    <p>Ajusta el precio, el coste y los minutos que ocupa cada servicio.</p>
     <h3>Categorías</h3>
     <div class="legend" id="catLegend"></div>
     <div class="service-head">
-      <div>Servicio</div><div>Categoría</div><div style="text-align:right">Precio €</div><div style="text-align:right">Coste €</div><div></div>
+      <div>Servicio</div><div>Categoría</div><div style="text-align:right">Precio €</div><div style="text-align:right">Coste €</div><div style="text-align:right">Minutos</div><div></div>
     </div>
     <div id="servicesList"></div>
     <button class="btn btn-secondary" id="addService" type="button" style="margin-top:14px;width:100%">+ Añadir servicio</button>
@@ -451,6 +475,8 @@
     if(typeof v==='string') return {text:v,price:null,cost:null,paid:false,method:null};
     var appointment={text:String(v.text||''),price:Number.isFinite(v.price)?v.price:null,cost:Number.isFinite(v.cost)?v.cost:null,paid:!!v.paid,method:v.method||null};
     if(appointment.paid&&Number.isFinite(v.paidAt)) appointment.paidAt=v.paidAt;
+    if(Number.isFinite(v.arrivedAt)&&v.arrivedAt>0) appointment.arrivedAt=v.arrivedAt;
+    if(Number.isFinite(v.attendedAt)&&v.attendedAt>0) appointment.attendedAt=v.attendedAt;
     if(v.service?.id&&v.service.name){
       appointment.service=v.service;
       appointment.client=String(v.client||'');
@@ -521,14 +547,36 @@
       configInput=document.getElementById('configInput');
 
   function allSlots(){ var a=[]; for(var h=hoursRange.start;h<hoursRange.end;h++){a.push(pad(h)+':00');a.push(pad(h)+':30');} return a; }
+  function serviceMinutes(value){
+    var minutes=Number(value);
+    return Number.isInteger(minutes)&&minutes>=15&&minutes<=480&&minutes%15===0?minutes:30;
+  }
+  function minutesAt(time){
+    if(!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) return NaN;
+    return Number(time.slice(0,2))*60+Number(time.slice(3));
+  }
+  function endMinutes(time,appt){return minutesAt(time)+serviceMinutes(appt?.service?.duration);}
+  function formatTime(minutes){return pad(Math.floor(minutes/60))+':'+pad(minutes%60);}
+  function findOverlap(iso,time,duration,ignoreTime){
+    var start=minutesAt(time);
+    var end=start+duration;
+    for(var candidate of Object.keys(data[iso]||{}).sort()){
+      if(candidate===ignoreTime||minutesAt(candidate)>=end) continue;
+      var appt=appointmentAt(iso,candidate);
+      if(appt&&endMinutes(candidate,appt)>start) return {time:candidate,appt:appt};
+    }
+    return null;
+  }
   function currentSlot(){ var n=new Date(),h=n.getHours(),m=n.getMinutes()<30?0:30; if(h<hoursRange.start||h>=hoursRange.end) return null; return pad(h)+':'+pad(m); }
   function autoExpandFromData(){
     var s=hoursRange.start,e=hoursRange.end;
     Object.keys(data).forEach(function(iso){
       var d=data[iso]; if(!d||typeof d!=='object') return;
       Object.keys(d).forEach(function(t){
-        var h=parseInt(t.split(':')[0],10);
-        if(!isNaN(h)){ if(h<s)s=h; if(h+1>e)e=h+1; }
+        var start=minutesAt(t),appt=appointmentAt(iso,t);
+        if(!appt||!Number.isFinite(start)) return;
+        s=Math.min(s,Math.floor(start/60));
+        e=Math.max(e,Math.min(24,Math.ceil(endMinutes(t,appt)/60)));
       });
     });
     if(s!==hoursRange.start||e!==hoursRange.end){ hoursRange={start:s,end:e}; saveHours(); }
@@ -586,7 +634,18 @@
 
       var appt=normalizeAppointment(day[t]);
       if(!appt||!appt.text){
-        var cEl=document.createElement('div'); cEl.className='content'; cEl.tabIndex=0; cEl.setAttribute('role','button'); cEl.setAttribute('aria-label','Añadir cita a las '+t); bodyEl.appendChild(cEl);
+        var blocked=findOverlap(iso,t,1);
+        var cEl=document.createElement('div');
+        cEl.className=blocked?'text reserved':'content';
+        cEl.tabIndex=0;
+        cEl.setAttribute('role','button');
+        if(blocked){
+          cEl.textContent='Ocupada hasta las '+formatTime(Math.min(1440,endMinutes(blocked.time,blocked.appt)));
+          cEl.setAttribute('aria-label','Hora ocupada a las '+t+'. '+cEl.textContent);
+        }else{
+          cEl.setAttribute('aria-label','Añadir cita a las '+t);
+        }
+        bodyEl.appendChild(cEl);
       } else {
         var amounts=appointmentAmounts(appt);
         var price=amounts.price,cost=amounts.cost;
@@ -607,6 +666,20 @@
         priceBtn.innerHTML='<span class="p">'+fmtEuro(price)+'</span><span class="c">'+esc(cc.label)+'</span>'; priceBtn.setAttribute('aria-label','Precio '+fmtEuro(price)+'. Categoría '+cc.label+'. Toca para cambiar precio y coste.'); meta.appendChild(priceBtn);
 
         var costTxt=document.createElement('span'); costTxt.className='cost-txt'; costTxt.textContent='Coste '+fmtEuro(cost); meta.appendChild(costTxt);
+
+        if(appt.attendedAt){
+          var attendance=document.createElement('span');
+          attendance.className='arrival-status';
+          attendance.textContent='✓ Atendida';
+          meta.appendChild(attendance);
+        }else{
+          var arrivalButton=document.createElement('button');
+          arrivalButton.type='button';
+          arrivalButton.className='arrival-btn';
+          arrivalButton.textContent=appt.arrivedAt?'Marcar atendida':'Ha llegado';
+          arrivalButton.setAttribute('aria-label',arrivalButton.textContent+': '+appt.text);
+          meta.appendChild(arrivalButton);
+        }
 
         var payBtn=document.createElement('button'); payBtn.type='button'; payBtn.className='pay-btn';
         var payKey, payLabel;
@@ -629,6 +702,7 @@
       appointmentClient=document.getElementById('appointmentClient'),
       appointmentService=document.getElementById('appointmentService'),
       appointmentTotal=document.getElementById('appointmentTotal'),
+      appointmentLength=document.getElementById('appointmentLength'),
       appointmentPayment=document.getElementById('appointmentPayment'),
       appointmentNotice=document.getElementById('appointmentNotice'),
       appointmentConflict=document.getElementById('appointmentConflict'),
@@ -639,7 +713,8 @@
       occupiedDetails=document.getElementById('occupiedDetails'),
       occupiedMessage=document.getElementById('occupiedMessage'),
       viewOccupied=document.getElementById('viewOccupied'),
-      editOccupied=document.getElementById('editOccupied');
+      editOccupied=document.getElementById('editOccupied'),
+      resetAttendance=document.getElementById('resetAttendance');
   var occupiedSlot=null;
 
   function appointmentAt(iso,time){
@@ -661,20 +736,21 @@
     render();
   });
 
-  function openOccupiedSlot(iso,time,appt,draft){
-    occupiedSlot={iso:iso,time:time,draft:draft};
-    occupiedClient.textContent=time+' · '+(appt.client||appt.text);
+  function openOccupiedSlot(iso,time,appt,draft,bookedTime=time){
+    occupiedSlot={iso:iso,time:time,bookedTime:bookedTime,draft:draft};
+    occupiedClient.textContent=bookedTime+' · '+(appt.client||appt.text);
     occupiedDetails.hidden=true;
-    occupiedMessage.textContent=draft?'La hora se ha ocupado mientras rellenabas la cita. Puedes llevarla al siguiente hueco.':'';
+    occupiedMessage.textContent=draft?'La cita se solapa con esta reserva. Puedes llevarla al siguiente hueco.':'';
     occupiedMessage.hidden=!draft;
     viewOccupied.hidden=false;
     editOccupied.hidden=true;
+    resetAttendance.hidden=true;
     occupiedDialog.showModal();
   }
 
   viewOccupied.addEventListener('click',function(){
     refreshLocalAppointments();
-    var appt=appointmentAt(occupiedSlot.iso,occupiedSlot.time);
+    var appt=appointmentAt(occupiedSlot.iso,occupiedSlot.bookedTime);
     if(!appt){
       occupiedMessage.textContent='La cita ya no está guardada. Cierra este aviso para ver la agenda.';
       occupiedMessage.hidden=false;
@@ -683,24 +759,38 @@
       return;
     }
     var amounts=appointmentAmounts(appt);
-    occupiedClient.textContent=occupiedSlot.time+' · '+appt.text;
-    occupiedDetails.textContent=fmtEuro(amounts.price)+' · '+paymentLabel(appt);
+    occupiedClient.textContent=occupiedSlot.bookedTime+' · '+appt.text;
+    occupiedDetails.textContent=serviceMinutes(appt.service?.duration)+' min · '+fmtEuro(amounts.price)+' · '+paymentLabel(appt)+(appt.attendedAt?' · Atendida':appt.arrivedAt?' · Ha llegado':'');
     occupiedDetails.hidden=false;
     viewOccupied.hidden=true;
     editOccupied.hidden=false;
+    resetAttendance.hidden=!(appt.arrivedAt||appt.attendedAt);
     editOccupied.focus();
   });
 
   editOccupied.addEventListener('click',function(){
     var slot=occupiedSlot;
     occupiedDialog.close();
-    openAppointment(slot.time,true,slot.iso);
+    openAppointment(slot.bookedTime,true,slot.iso);
+  });
+
+  resetAttendance.addEventListener('click',function(){
+    refreshLocalAppointments();
+    var slot=occupiedSlot,appt=appointmentAt(slot.iso,slot.bookedTime);
+    if(!appt) return;
+    delete appt.arrivedAt;
+    delete appt.attendedAt;
+    saveAppointment(slot.iso,slot.bookedTime,appt);
+    occupiedDialog.close();
   });
 
   document.getElementById('nextFreeSlot').addEventListener('click',function(){
     refreshLocalAppointments();
     var slot=occupiedSlot;
-    var next=allSlots().find(function(time){return time>slot.time&&!appointmentAt(slot.iso,time);});
+    var duration=slot.draft?.duration||30;
+    var next=allSlots().find(function(time){
+      return time>slot.time&&minutesAt(time)+duration<=1440&&!findOverlap(slot.iso,time,duration);
+    });
     if(!next){
       occupiedMessage.textContent='No quedan huecos libres después de esta hora.';
       occupiedMessage.hidden=false;
@@ -726,6 +816,33 @@
     render();
   }
 
+  var arrivalDialog=document.getElementById('arrivalDialog');
+  document.getElementById('closeArrival').addEventListener('click',function(){arrivalDialog.close();});
+
+  function markArrival(time){
+    var iso=isoDate(currentDate);
+    refreshLocalAppointments();
+    var appt=appointmentAt(iso,time);
+    if(!appt||appt.attendedAt) return;
+    var now=new Date();
+    if(appt.arrivedAt){
+      appt.attendedAt=now.getTime();
+      saveAppointment(iso,time,appt);
+      return;
+    }
+    appt.arrivedAt=now.getTime();
+    saveAppointment(iso,time,appt);
+    if(iso!==isoDate(now)||now.getHours()*60+now.getMinutes()>=minutesAt(time)) return;
+    var previous=Object.keys(data[iso]||{}).sort().reverse().find(function(candidate){
+      var earlier=appointmentAt(iso,candidate);
+      return minutesAt(candidate)<minutesAt(time)&&earlier&&!earlier.attendedAt;
+    });
+    if(!previous) return;
+    var earlier=appointmentAt(iso,previous);
+    document.getElementById('arrivalMessage').textContent='La cita de las '+previous+' ('+(earlier.client||earlier.text)+') está pendiente de atender.';
+    arrivalDialog.showModal();
+  }
+
   function buildAppointment(text,service,previous){
     var serviceChanged=(previous?.service?.id||'')!==(service?.id||'');
     var result={text:text,price:null,cost:null,paid:false,method:null};
@@ -736,10 +853,12 @@
       result.method=previous.method;
       if(previous.paidAt) result.paidAt=previous.paidAt;
     }
+    if(previous?.arrivedAt) result.arrivedAt=previous.arrivedAt;
+    if(previous?.attendedAt) result.attendedAt=previous.attendedAt;
     if(service){
       var bookedService=serviceChanged?service:previous.service;
       result.client=text;
-      result.service={id:bookedService.id,name:bookedService.name,cat:bookedService.cat||inferCat(bookedService.name),price:Number(bookedService.price)||0,cost:Number(bookedService.cost)||0};
+      result.service={id:bookedService.id,name:bookedService.name,cat:bookedService.cat||inferCat(bookedService.name),price:Number(bookedService.price)||0,cost:Number(bookedService.cost)||0,duration:serviceMinutes(bookedService.duration)};
       result.text=text+' · '+result.service.name;
     }
     return result;
@@ -756,6 +875,8 @@
     var appt=appointmentEdit.previous;
     var draft=buildAppointment(appointmentClient.value,selectedService(appt),appt);
     appointmentTotal.textContent=fmtEuro(appointmentAmounts(draft).price);
+    var end=endMinutes(appointmentEdit.time,draft);
+    appointmentLength.textContent=serviceMinutes(draft.service?.duration)+' min'+(end<=1440?' · hasta '+formatTime(end):'');
     appointmentPayment.textContent=paymentLabel(draft);
     appointmentNotice.hidden=!(appt?.paid&&!draft.paid);
   }
@@ -768,6 +889,11 @@
       openOccupiedSlot(iso,time,previous,carriedDraft);
       return;
     }
+    var blocked=!previous&&findOverlap(iso,time,1);
+    if(blocked){
+      openOccupiedSlot(iso,time,blocked.appt,carriedDraft,blocked.time);
+      return;
+    }
     var date=new Date(iso+'T12:00:00');
     appointmentEdit={iso:iso,time:time,previous:previous};
     document.getElementById('appointmentTitle').textContent=previous?'Editar cita':'Nueva cita';
@@ -777,10 +903,10 @@
     services.forEach(function(service){
       if(!service.name.trim()) return;
       var option=previous?.service?.id===service.id?previous.service:service;
-      appointmentService.add(new Option(option.name+' · '+fmtEuro(option.price),option.id));
+      appointmentService.add(new Option(option.name+' · '+fmtEuro(option.price)+' · '+serviceMinutes(option.duration)+' min',option.id));
     });
     if(previous?.service&&!services.some(function(service){return service.id===previous.service.id&&service.name.trim();})){
-      appointmentService.add(new Option(previous.service.name+' · '+fmtEuro(previous.service.price),previous.service.id));
+      appointmentService.add(new Option(previous.service.name+' · '+fmtEuro(previous.service.price)+' · '+serviceMinutes(previous.service.duration)+' min',previous.service.id));
     }
     appointmentService.value=previous?.service?.id||carriedDraft?.service||'';
     deleteAppointment.hidden=!previous;
@@ -797,10 +923,12 @@
     var text=appointmentClient.value.replace(/\s+/g,' ').trim();
     if(!text){appointmentClient.focus();return;}
     var iso=appointmentEdit.iso,time=appointmentEdit.time;
+    appointmentConflict.hidden=true;
     refreshLocalAppointments();
     var previous=appointmentAt(iso,time);
     if(previous&&previous.text!==appointmentEdit.previous?.text){
-      var carry=appointmentEdit.previous?null:{text:text,service:appointmentService.value};
+      var chosen=selectedService(appointmentEdit.previous);
+      var carry=appointmentEdit.previous?null:{text:text,service:appointmentService.value,duration:serviceMinutes(chosen?.duration)};
       appointmentDialog.close();
       render();
       openOccupiedSlot(iso,time,previous,carry);
@@ -813,6 +941,24 @@
       return;
     }
     var draft=buildAppointment(text,selectedService(appointmentEdit.previous),previous);
+    if(endMinutes(time,draft)>1440){
+      appointmentConflict.textContent='El servicio termina después de medianoche. Elige una hora anterior.';
+      appointmentConflict.hidden=false;
+      return;
+    }
+    var duration=serviceMinutes(draft.service?.duration);
+    var overlap=findOverlap(iso,time,duration,previous?time:null);
+    if(overlap){
+      if(previous){
+        appointmentConflict.textContent='El servicio se solapa con la cita de las '+overlap.time+'. Ajusta el servicio o elige otro hueco.';
+        appointmentConflict.hidden=false;
+      }else{
+        appointmentDialog.close();
+        render();
+        openOccupiedSlot(iso,time,overlap.appt,{text:text,service:appointmentService.value,duration:duration},overlap.time);
+      }
+      return;
+    }
     var amounts=appointmentAmounts(draft);
     draft.price=amounts.price;
     draft.cost=amounts.cost;
@@ -888,6 +1034,7 @@
     var row=e.target.closest('.slot'); if(!row) return; var time=row.dataset.time;
     if(e.target.closest('.price-btn')||e.target.closest('.cost-txt')){ openPriceEditor(time); return; }
     if(e.target.closest('.pay-btn')){ openPayPicker(time); return; }
+    if(e.target.closest('.arrival-btn')){ markArrival(time); return; }
     if(e.target.closest('.time,.text,.content')) openAppointment(time);
   });
   slotsEl.addEventListener('keydown',function(e){
@@ -1017,15 +1164,34 @@
     renderLegend(); servicesList.innerHTML='';
     services.forEach(function(s,idx){
       var cc=catColor(s.cat||inferCat(s.name)); var row=document.createElement('div'); row.className='service-row';
-      var nameInp=document.createElement('input'); nameInp.type='text'; nameInp.value=s.name; nameInp.dataset.idx=idx; nameInp.dataset.field='name'; nameInp.setAttribute('aria-label','Nombre'); row.appendChild(nameInp);
+      var nameInp=document.createElement('input'); nameInp.type='text'; nameInp.className='service-title'; nameInp.value=s.name; nameInp.dataset.idx=idx; nameInp.dataset.field='name'; nameInp.setAttribute('aria-label','Nombre'); row.appendChild(nameInp);
       var sel=document.createElement('select'); sel.dataset.idx=idx; sel.dataset.field='cat'; sel.setAttribute('aria-label','Categoría');
       Object.keys(CATEGORIES).forEach(function(k){ var op=document.createElement('option'); op.value=k; op.textContent=CATEGORIES[k].label; if ((s.cat||'otros')===k) op.selected=true; sel.appendChild(op); });
       sel.style.background=cc.bg; sel.style.color=cc.fg; sel.style.borderColor=cc.border; row.appendChild(sel);
-      var priceInp=document.createElement('input'); priceInp.type='number'; priceInp.step='0.01'; priceInp.min='0'; priceInp.className='num'; priceInp.value=(Number(s.price)||0); priceInp.dataset.idx=idx; priceInp.dataset.field='price'; priceInp.setAttribute('aria-label','Precio'); row.appendChild(priceInp);
-      var costInp=document.createElement('input'); costInp.type='number'; costInp.step='0.01'; costInp.min='0'; costInp.className='num'; costInp.value=(Number(s.cost)||0); costInp.dataset.idx=idx; costInp.dataset.field='cost'; costInp.setAttribute('aria-label','Coste'); row.appendChild(costInp);
+      [{field:'price',label:'Precio €'},{field:'cost',label:'Coste €'}].forEach(function(column){
+        var input=document.createElement('input');
+        input.type='number'; input.step='0.01'; input.min='0'; input.className='num';
+        input.value=Number(s[column.field])||0;
+        appendServiceControl(row,input,idx,column.field,column.label);
+      });
+      var duration=document.createElement('select');
+      for(var min=15;min<=480;min+=15) duration.add(new Option(String(min),String(min)));
+      duration.value=String(serviceMinutes(s.duration));
+      appendServiceControl(row,duration,idx,'duration','Minutos');
       var del=document.createElement('button'); del.type='button'; del.className='del'; del.dataset.idx=idx; del.setAttribute('aria-label','Borrar'); del.textContent='×'; row.appendChild(del);
       servicesList.appendChild(row);
     });
+  }
+  function appendServiceControl(row,control,index,field,label){
+    var cell=document.createElement('label');
+    cell.className='service-value';
+    var caption=document.createElement('span');
+    caption.textContent=label;
+    control.dataset.idx=index;
+    control.dataset.field=field;
+    control.setAttribute('aria-label',label);
+    cell.append(caption,control);
+    row.appendChild(cell);
   }
   servicesList.addEventListener('input',function(e){
     var el=e.target; if(!el.dataset||el.dataset.idx===undefined) return; var idx=parseInt(el.dataset.idx,10); var field=el.dataset.field; if(!services[idx]) return;
@@ -1035,10 +1201,14 @@
   });
   servicesList.addEventListener('change',function(e){
     var el=e.target; if(!el.dataset||el.dataset.idx===undefined) return;
+    if(el.dataset.field==='duration'){
+      var service=services[Number(el.dataset.idx)];
+      if(service){service.duration=serviceMinutes(el.value);saveServices();}
+    }
     if(el.dataset.field==='cat'){ var idx=parseInt(el.dataset.idx,10); if(services[idx]) services[idx].cat=el.value; saveServices(); var cc=catColor(el.value); el.style.background=cc.bg; el.style.color=cc.fg; el.style.borderColor=cc.border; }
   });
   servicesList.addEventListener('click',function(e){ if(e.target.classList.contains('del')){ var idx=parseInt(e.target.dataset.idx,10); services.splice(idx,1); saveServices(); renderServicesEditor(); updateSummaryBar(); } });
-  document.getElementById('addService').addEventListener('click',function(){ services.push({id:'s'+Date.now(),name:'Nuevo servicio',price:0,cost:0,cat:'otros'}); saveServices(); renderServicesEditor(); var rows=servicesList.querySelectorAll('.service-row'); var last=rows[rows.length-1]; if(last){ var inp=last.querySelector('input'); if(inp){ inp.focus(); inp.select(); } } });
+  document.getElementById('addService').addEventListener('click',function(){ services.push({id:'s'+Date.now(),name:'Nuevo servicio',price:0,cost:0,cat:'otros',duration:30}); saveServices(); renderServicesEditor(); var rows=servicesList.querySelectorAll('.service-row'); var last=rows[rows.length-1]; if(last){ var inp=last.querySelector('input'); if(inp){ inp.focus(); inp.select(); } } });
 
   function parseConfig(text){ var out={}; var re=/(\w+)\s*:\s*["']([^"']+)["']/g; var m; while((m=re.exec(text))!==null){ out[m[1]]=m[2]; } return out; }
   function loadFirebaseScripts(){
