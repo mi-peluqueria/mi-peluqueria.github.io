@@ -50,7 +50,7 @@
   .extend[hidden]{display:none;}
   #extendAfter{border-top:1px solid var(--line);}
   .slot{display:grid;grid-template-columns:92px 1fr;border-bottom:1px solid var(--line);min-height:64px;}
-  .slot .time{padding:18px 10px 12px 18px;font-size:18px;font-weight:600;color:var(--ink-muted);font-variant-numeric:tabular-nums;}
+  .slot .time{padding:18px 10px 12px 18px;font-size:18px;font-weight:600;color:var(--ink-muted);font-variant-numeric:tabular-nums;cursor:pointer;}
   .slot .body{padding:10px 12px 10px 6px;display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:64px;min-width:0;}
   .slot .content{min-height:40px;cursor:text;display:flex;align-items:center;}
   .slot .content:focus-visible{outline:3px solid var(--violet);outline-offset:-3px;border-radius:6px;}
@@ -111,6 +111,7 @@
   .appointment-total output{font-weight:750;font-size:21px}
   .appointment-total small{color:var(--ink-muted)}
   .agenda-dialog .delete-cita{margin-right:auto;background:transparent;color:var(--red)}
+  #occupiedClient{padding:12px;border-radius:12px;background:var(--violet-soft);color:var(--ink);font-weight:700;overflow-wrap:anywhere}
   .day-summary{position:sticky;bottom:0;background:var(--paper-2);border-top:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;}
   .day-summary[hidden]{display:none}
   .day-summary .txt{flex:1 1 auto;min-width:0;}
@@ -226,12 +227,26 @@
       <small id="appointmentPayment"></small>
     </div>
     <p id="appointmentNotice" hidden>El cambio de servicio dejará la cita pendiente de cobro.</p>
+    <p id="appointmentConflict" role="status" hidden></p>
     <div class="btns">
       <button class="btn delete-cita" type="button" id="deleteAppointment">Borrar cita</button>
       <button class="btn btn-secondary" type="button" id="cancelAppointment">Cancelar</button>
       <button class="btn btn-primary" type="submit">Guardar cita</button>
     </div>
   </form>
+</dialog>
+
+<dialog class="agenda-dialog" id="occupiedDialog" aria-labelledby="occupiedTitle">
+  <h2 id="occupiedTitle">Hora ocupada</h2>
+  <p id="occupiedClient"></p>
+  <p id="occupiedDetails" hidden></p>
+  <p id="occupiedMessage" role="status" hidden></p>
+  <div class="btns">
+    <button class="btn btn-secondary" type="button" id="closeOccupied">Cerrar</button>
+    <button class="btn btn-secondary" type="button" id="viewOccupied">Ver cita</button>
+    <button class="btn btn-secondary" type="button" id="editOccupied" hidden>Editar cita</button>
+    <button class="btn btn-primary" type="button" id="nextFreeSlot">Buscar siguiente hueco</button>
+  </div>
 </dialog>
 
 <div class="modal" id="summaryModal" hidden>
@@ -578,7 +593,7 @@
         var catKey=primaryCat(amounts.services);
         var cc=catColor(catKey);
 
-        var textEl=document.createElement('div'); textEl.className='text'; textEl.tabIndex=0; textEl.setAttribute('role','button'); textEl.textContent=appt.client||appt.text; textEl.setAttribute('aria-label','Editar cita: '+appt.text);
+        var textEl=document.createElement('div'); textEl.className='text'; textEl.tabIndex=0; textEl.setAttribute('role','button'); textEl.textContent=appt.client||appt.text; textEl.setAttribute('aria-label','Hora ocupada a las '+t+': '+appt.text);
         if(appt.service&&appt.client){
           var serviceName=document.createElement('span');
           serviceName.className='service-name';
@@ -616,8 +631,85 @@
       appointmentTotal=document.getElementById('appointmentTotal'),
       appointmentPayment=document.getElementById('appointmentPayment'),
       appointmentNotice=document.getElementById('appointmentNotice'),
+      appointmentConflict=document.getElementById('appointmentConflict'),
       deleteAppointment=document.getElementById('deleteAppointment');
   var appointmentEdit=null;
+  var occupiedDialog=document.getElementById('occupiedDialog'),
+      occupiedClient=document.getElementById('occupiedClient'),
+      occupiedDetails=document.getElementById('occupiedDetails'),
+      occupiedMessage=document.getElementById('occupiedMessage'),
+      viewOccupied=document.getElementById('viewOccupied'),
+      editOccupied=document.getElementById('editOccupied');
+  var occupiedSlot=null;
+
+  function appointmentAt(iso,time){
+    var appt=normalizeAppointment(data[iso]?.[time]);
+    return appt?.text?appt:null;
+  }
+
+  function refreshLocalAppointments(){
+    if(fbRef) return;
+    try{
+      var saved=JSON.parse(localStorage.getItem(KEY_MAIN));
+      if(saved&&typeof saved==='object'&&!Array.isArray(saved)) data=saved;
+    }catch(_){}
+  }
+
+  window.addEventListener('storage',function(event){
+    if(event.key!==KEY_MAIN||fbRef) return;
+    refreshLocalAppointments();
+    render();
+  });
+
+  function openOccupiedSlot(iso,time,appt,draft){
+    occupiedSlot={iso:iso,time:time,draft:draft};
+    occupiedClient.textContent=time+' · '+(appt.client||appt.text);
+    occupiedDetails.hidden=true;
+    occupiedMessage.textContent=draft?'La hora se ha ocupado mientras rellenabas la cita. Puedes llevarla al siguiente hueco.':'';
+    occupiedMessage.hidden=!draft;
+    viewOccupied.hidden=false;
+    editOccupied.hidden=true;
+    occupiedDialog.showModal();
+  }
+
+  viewOccupied.addEventListener('click',function(){
+    refreshLocalAppointments();
+    var appt=appointmentAt(occupiedSlot.iso,occupiedSlot.time);
+    if(!appt){
+      occupiedMessage.textContent='La cita ya no está guardada. Cierra este aviso para ver la agenda.';
+      occupiedMessage.hidden=false;
+      viewOccupied.hidden=true;
+      render();
+      return;
+    }
+    var amounts=appointmentAmounts(appt);
+    occupiedClient.textContent=occupiedSlot.time+' · '+appt.text;
+    occupiedDetails.textContent=fmtEuro(amounts.price)+' · '+paymentLabel(appt);
+    occupiedDetails.hidden=false;
+    viewOccupied.hidden=true;
+    editOccupied.hidden=false;
+    editOccupied.focus();
+  });
+
+  editOccupied.addEventListener('click',function(){
+    var slot=occupiedSlot;
+    occupiedDialog.close();
+    openAppointment(slot.time,true,slot.iso);
+  });
+
+  document.getElementById('nextFreeSlot').addEventListener('click',function(){
+    refreshLocalAppointments();
+    var slot=occupiedSlot;
+    var next=allSlots().find(function(time){return time>slot.time&&!appointmentAt(slot.iso,time);});
+    if(!next){
+      occupiedMessage.textContent='No quedan huecos libres después de esta hora.';
+      occupiedMessage.hidden=false;
+      return;
+    }
+    occupiedDialog.close();
+    openAppointment(next,false,slot.iso,slot.draft);
+  });
+  document.getElementById('closeOccupied').addEventListener('click',function(){occupiedDialog.close();});
 
   function saveAppointment(iso,time,appointment){
     if(appointment){
@@ -668,14 +760,19 @@
     appointmentNotice.hidden=!(appt?.paid&&!draft.paid);
   }
 
-  function openAppointment(time){
+  function openAppointment(time,allowEdit,iso=isoDate(currentDate),carriedDraft=null){
     if(appointmentDialog.open) return;
-    var iso=isoDate(currentDate);
-    var previous=normalizeAppointment((data[iso]||{})[time]);
+    refreshLocalAppointments();
+    var previous=appointmentAt(iso,time);
+    if(previous&&!allowEdit){
+      openOccupiedSlot(iso,time,previous,carriedDraft);
+      return;
+    }
+    var date=new Date(iso+'T12:00:00');
     appointmentEdit={iso:iso,time:time,previous:previous};
     document.getElementById('appointmentTitle').textContent=previous?'Editar cita':'Nueva cita';
-    document.getElementById('appointmentDate').textContent=dowEl.textContent+' · '+dateEl.textContent+' · '+time;
-    appointmentClient.value=previous?.client||previous?.text||'';
+    document.getElementById('appointmentDate').textContent=DIAS[date.getDay()]+' · '+date.getDate()+' de '+MESES[date.getMonth()]+' de '+date.getFullYear()+' · '+time;
+    appointmentClient.value=previous?.client||previous?.text||carriedDraft?.text||'';
     appointmentService.replaceChildren(new Option('Sin seleccionar',''));
     services.forEach(function(service){
       if(!service.name.trim()) return;
@@ -685,8 +782,9 @@
     if(previous?.service&&!services.some(function(service){return service.id===previous.service.id&&service.name.trim();})){
       appointmentService.add(new Option(previous.service.name+' · '+fmtEuro(previous.service.price),previous.service.id));
     }
-    appointmentService.value=previous?.service?.id||'';
+    appointmentService.value=previous?.service?.id||carriedDraft?.service||'';
     deleteAppointment.hidden=!previous;
+    appointmentConflict.hidden=true;
     refreshAppointmentTotal();
     appointmentDialog.showModal();
   }
@@ -699,7 +797,21 @@
     var text=appointmentClient.value.replace(/\s+/g,' ').trim();
     if(!text){appointmentClient.focus();return;}
     var iso=appointmentEdit.iso,time=appointmentEdit.time;
-    var previous=normalizeAppointment((data[iso]||{})[time]);
+    refreshLocalAppointments();
+    var previous=appointmentAt(iso,time);
+    if(previous&&previous.text!==appointmentEdit.previous?.text){
+      var carry=appointmentEdit.previous?null:{text:text,service:appointmentService.value};
+      appointmentDialog.close();
+      render();
+      openOccupiedSlot(iso,time,previous,carry);
+      return;
+    }
+    if(!previous&&appointmentEdit.previous){
+      appointmentConflict.textContent='La cita se ha borrado en otra pestaña o dispositivo. Cierra la ficha para actualizar la agenda.';
+      appointmentConflict.hidden=false;
+      render();
+      return;
+    }
     var draft=buildAppointment(text,selectedService(appointmentEdit.previous),previous);
     var amounts=appointmentAmounts(draft);
     draft.price=amounts.price;
@@ -711,7 +823,14 @@
   deleteAppointment.addEventListener('click',function(){
     if(!appointmentEdit||!window.confirm('¿Borrar esta cita?')) return;
     var iso=appointmentEdit.iso,time=appointmentEdit.time;
+    refreshLocalAppointments();
+    var current=appointmentAt(iso,time);
     appointmentDialog.close();
+    if(current?.text!==appointmentEdit.previous?.text){
+      render();
+      if(current) openOccupiedSlot(iso,time,current,null);
+      return;
+    }
     saveAppointment(iso,time,null);
   });
 
@@ -769,7 +888,7 @@
     var row=e.target.closest('.slot'); if(!row) return; var time=row.dataset.time;
     if(e.target.closest('.price-btn')||e.target.closest('.cost-txt')){ openPriceEditor(time); return; }
     if(e.target.closest('.pay-btn')){ openPayPicker(time); return; }
-    if(e.target.closest('.text')||e.target.closest('.content')){ openAppointment(row.dataset.time); return; }
+    if(e.target.closest('.time,.text,.content')) openAppointment(time);
   });
   slotsEl.addEventListener('keydown',function(e){
     if(e.key!=='Enter'&&e.key!==' ') return;
