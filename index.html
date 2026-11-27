@@ -22,6 +22,7 @@
 
 <link rel="icon" href="./mi-peluqueria.png">
 <link rel="apple-touch-icon" href="./mi-peluqueria.png">
+<link rel="manifest" href="./manifest.webmanifest">
 
 <script>
 (function(){
@@ -229,11 +230,6 @@
     .service-value>span{display:block;color:var(--ink-muted);font-size:12px;margin-bottom:3px}
   }
   #searchClient{width:100%;font-family:var(--font);font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
-  #syncAdvanced{border:1px solid var(--line);border-radius:12px;padding:0 12px}
-  #syncAdvanced summary{padding:11px 0;cursor:pointer;color:var(--accent-ink);font-weight:650}
-  #syncAdvanced form{margin:6px 0 12px}
-  #configInput{width:100%;padding:9px 11px;border:1px solid var(--field-border);border-radius:10px;font:inherit;color:var(--ink);background:var(--field);resize:vertical}
-  #setupErr:empty{display:none}
 </style>
 </head>
 <body>
@@ -254,7 +250,7 @@
     <button class="precios" id="openPrices" type="button">Precios y categorías</button>
     <button class="precios" id="toggleTheme" type="button">Modo oscuro</button>
     <button class="precios" id="openTeam" type="button">Equipo</button>
-    <button class="precios" id="openSetup" type="button" aria-haspopup="dialog">Dispositivos</button>
+    <button class="precios" id="installApp" type="button" aria-haspopup="dialog">Instalar</button>
     <label id="professionalControl" for="professionalSelect" hidden>Profesional
       <select id="professionalSelect"></select>
     </label>
@@ -433,24 +429,12 @@
   </div>
 </div>
 
-<dialog class="agenda-dialog" id="setup" aria-labelledby="setupTitle">
-  <h2 id="setupTitle">Conectar dispositivos</h2>
-  <p>Conecta tus dispositivos para ver las mismas citas en el móvil y el ordenador.</p>
-  <p id="syncStatus"></p>
-  <details id="syncAdvanced">
-    <summary>Configuración avanzada</summary>
-    <form id="syncForm">
-      <label for="configInput">Configuración de Firebase</label>
-      <textarea id="configInput" rows="4" spellcheck="false" autocapitalize="off"></textarea>
-      <p id="setupErr" role="status"></p>
-      <div class="btns">
-        <button class="btn btn-primary" id="doConnect" type="submit">Conectar</button>
-      </div>
-    </form>
-  </details>
-  <div class="btns">
-    <button class="btn btn-secondary" id="cancelSetup" type="button" autofocus>Cerrar</button>
-  </div>
+<dialog class="agenda-dialog" id="installDialog" aria-labelledby="installTitle" aria-describedby="installInstructions">
+  <h2 id="installTitle">Instalar MI PELUQUERÍA</h2>
+  <p id="installInstructions"></p>
+  <form method="dialog" class="btns">
+    <button class="btn btn-secondary" autofocus>Cerrar</button>
+  </form>
 </dialog>
 
 <script>
@@ -705,9 +689,7 @@
       historyBody=document.getElementById('historyBody'),
       priceModal=document.getElementById('priceModal'),priceSub=document.getElementById('priceSub'),
       priceInput=document.getElementById('priceInput'),costInput=document.getElementById('costInput'),
-      payModal=document.getElementById('payModal'),paySub=document.getElementById('paySub'),
-      setupEl=document.getElementById('setup'),setupErr=document.getElementById('setupErr'),
-      configInput=document.getElementById('configInput');
+      payModal=document.getElementById('payModal'),paySub=document.getElementById('paySub');
 
   var professionalControl=document.getElementById('professionalControl'),
       professionalSelect=document.getElementById('professionalSelect'),
@@ -1462,7 +1444,6 @@
   servicesList.addEventListener('click',function(e){ if(e.target.classList.contains('del')){ var idx=parseInt(e.target.dataset.idx,10); services.splice(idx,1); saveServices(); renderServicesEditor(); updateSummaryBar(); } });
   document.getElementById('addService').addEventListener('click',function(){ services.push({id:'s'+Date.now(),name:'Nuevo servicio',price:0,cost:0,cat:'otros',duration:30}); saveServices(); renderServicesEditor(); var rows=servicesList.querySelectorAll('.service-row'); var last=rows[rows.length-1]; if(last){ var inp=last.querySelector('input'); if(inp){ inp.focus(); inp.select(); } } });
 
-  function parseConfig(text){ var out={}; var re=/(\w+)\s*:\s*["']([^"']+)["']/g; var m; while((m=re.exec(text))!==null){ out[m[1]]=m[2]; } return out; }
   function loadFirebaseScripts(){
     return new Promise(function(resolve,reject){
       if(window.firebase&&window.firebase.database) return resolve();
@@ -1582,51 +1563,6 @@
     connectTeam(database);
   }
 
-  var syncAdvanced=document.getElementById('syncAdvanced'),
-      syncStatus=document.getElementById('syncStatus'),
-      doConnect=document.getElementById('doConnect');
-
-  document.getElementById('openSetup').addEventListener('click',function(){
-    syncStatus.textContent=localStorage.getItem(KEY_CFG)
-      ? 'La sincronización está configurada en este navegador.'
-      : 'Las citas se guardan en este navegador.';
-    setupEl.showModal();
-  });
-  document.getElementById('cancelSetup').addEventListener('click',function(){ setupEl.close(); });
-  setupEl.addEventListener('close',function(){
-    syncAdvanced.open=false;
-    if(doConnect.disabled) return;
-    setupErr.textContent='';
-    configInput.value='';
-  });
-  document.getElementById('syncForm').addEventListener('submit',async function(event){
-    event.preventDefault();
-    if(doConnect.disabled) return;
-    var text=configInput.value.trim();
-    if(!text){ setupErr.textContent='Pega la configuración de Firebase.'; return; }
-    var cfg=parseConfig(text);
-    var missing=['apiKey','databaseURL','projectId'].find(function(key){ return !cfg[key]; });
-    if(missing){ setupErr.textContent='Falta «'+missing+'».'; return; }
-    doConnect.disabled=true;
-    setupErr.textContent='Conectando…';
-    try{
-      await connectToFirebase(cfg);
-      localStorage.setItem(KEY_CFG,JSON.stringify(cfg));
-      setupEl.close();
-      noticeEl.textContent='Conectado. Los cambios se guardan solos.';
-      noticeEl.hidden=false;
-      setTimeout(function(){ noticeEl.hidden=true; },4000);
-    }catch(e){
-      setupErr.textContent='No se pudo conectar: '+(e.message||e);
-    }finally{
-      doConnect.disabled=false;
-      if(!setupEl.open){
-        setupErr.textContent='';
-        configInput.value='';
-      }
-    }
-  });
-  
   (async function(){ 
     try{ var cfgText=localStorage.getItem(KEY_CFG); if(cfgText){ await connectToFirebase(JSON.parse(cfgText)); } }catch(_){} 
     setInterval(pushPending,15000); 
@@ -1830,6 +1766,50 @@
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) syncToToday(); });
   pedirTiempo(); setInterval(pedirTiempo,30*60*1000);
 
+})();
+</script>
+<script>
+(function(){
+  'use strict';
+  var installButton=document.getElementById('installApp');
+  var installDialog=document.getElementById('installDialog');
+  var standalone=window.matchMedia('(display-mode: standalone)');
+  var installPrompt=null;
+
+  function updateInstallButton(){
+    installButton.hidden=standalone.matches||navigator.standalone===true;
+  }
+
+  function showInstallInstructions(){
+    var message='Abre el enlace en Chrome o Edge y elige «Instalar» en el menú del navegador.';
+    if(/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){
+      message='Abre el enlace en Safari. Toca Compartir y elige «Añadir a pantalla de inicio». Activa «Abrir como app web» si aparece.';
+    }else if(/Android/i.test(navigator.userAgent)){
+      message='Abre el enlace en Chrome. Toca los tres puntos y elige «Instalar aplicación» o «Añadir a pantalla de inicio».';
+    }
+    document.getElementById('installInstructions').textContent=message;
+    installDialog.showModal();
+  }
+
+  updateInstallButton();
+  standalone.addEventListener?.('change',updateInstallButton);
+  window.addEventListener('beforeinstallprompt',function(event){
+    event.preventDefault();
+    installPrompt=event;
+  });
+  window.addEventListener('appinstalled',function(){
+    installPrompt=null;
+    installButton.hidden=true;
+  });
+  installButton.addEventListener('click',async function(){
+    if(!installPrompt){showInstallInstructions();return;}
+    var prompt=installPrompt;
+    installPrompt=null;
+    try{await prompt.prompt();}catch(_){showInstallInstructions();}
+  });
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  }
 })();
 </script>
 </body>
