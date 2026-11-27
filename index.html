@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#7c5a8f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MI PELUQUERÍA">
+<title>MI PELUQUERÍA</title>
+<meta name="description" content="Agenda de citas">
+<link rel="canonical" href="https://mi-peluqueria.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MI PELUQUERÍA">
+<meta property="og:description" content="Agenda de citas">
+<meta property="og:url" content="https://mi-peluqueria.github.io/">
+<meta property="og:image" content="https://mi-peluqueria.github.io/mi-peluqueria.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:image:alt" content="MI PELUQUERÍA">
+
+<link rel="icon" href="./mi-peluqueria.png">
+<link rel="apple-touch-icon" href="./mi-peluqueria.png">
+
+<style>
+  :root{--paper:#fdfcfb;--paper-2:#f7f3ef;--line:#ece5de;--ink:#2a2230;--ink-muted:#6b5b6f;--violet:#7c5a8f;--violet-soft:#f3edf6;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;--green:#2e7d32;--red:#b00020;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:21px;line-height:1.4;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom);}
+  .app{max-width:900px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:var(--paper);}
+  .bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;background:var(--paper);border-bottom:1px solid var(--line);}
+  .chev{flex:0 0 auto;width:60px;height:60px;border-radius:14px;background:var(--paper-2);border:1px solid var(--line);color:var(--ink);font-size:34px;line-height:1;font-family:var(--font);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .chev:active{background:var(--violet-soft)}
+  .chev:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+  .titles{flex:1 1 auto;min-width:0;text-align:center}
+  .dow{font-size:24px;font-weight:700;color:var(--ink);text-transform:capitalize;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .date{margin-top:2px;font-size:16px;color:var(--ink-muted);text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .status{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;font-size:18px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;}
+  .status .dot{opacity:.5}
+  .status .loc{text-decoration:underline dotted;text-underline-offset:4px;cursor:pointer;color:var(--ink);}
+  .status .edit{font-family:var(--font);font-size:18px;color:var(--ink);background:var(--violet-soft);border:none;border-radius:8px;padding:4px 10px;outline:2px solid var(--violet);min-width:150px;}
+  .hoy-row{display:flex;justify-content:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:var(--bar-h,120px);z-index:9;}
+  .hoy,.precios{background:var(--violet);color:#fff;border:none;border-radius:999px;padding:10px 22px;font-size:17px;font-weight:600;cursor:pointer;font-family:var(--font);}
+  .precios{background:var(--paper-2);color:var(--ink);border:1px solid var(--line);}
+  .hoy:focus-visible,.precios:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+  .hoy[hidden]{display:none}
+  #notice{background:var(--violet-soft);color:var(--ink);padding:12px 16px;font-size:17px;text-align:center;border-bottom:1px solid var(--line);}
+  #notice[hidden]{display:none}
+  main{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column}
+  .extend{display:block;width:100%;padding:14px 12px;background:var(--paper-2);border:none;border-bottom:1px solid var(--line);color:var(--ink-muted);font-family:var(--font);font-size:16px;cursor:pointer;text-align:center;}
+  .extend:active{background:var(--violet-soft);color:var(--ink);}
+  .extend[hidden]{display:none;}
+  #extendAfter{border-top:1px solid var(--line);}
+  .slot{display:grid;grid-template-columns:92px 1fr;border-bottom:1px solid var(--line);min-height:64px;}
+  .slot .time{padding:18px 10px 12px 18px;font-size:18px;font-weight:600;color:var(--ink-muted);font-variant-numeric:tabular-nums;}
+  .slot .body{padding:10px 12px 10px 6px;display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:64px;min-width:0;}
+  .slot .content{min-height:40px;cursor:text;display:flex;align-items:center;}
+  .slot .content:focus-visible{outline:3px solid var(--violet);outline-offset:-3px;border-radius:6px;}
+  .slot .text{font-size:22px;color:var(--ink);word-break:break-word;cursor:text;padding:2px 0;}
+  .slot .text:focus-visible{outline:3px solid var(--violet);outline-offset:2px;border-radius:4px;}
+  .slot .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;}
+  .slot .price-btn{font-family:var(--font);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 12px;border-radius:10px;border:2px solid;font-weight:700;cursor:pointer;line-height:1.1;min-width:78px;background:#fff;color:var(--ink);}
+  .slot .price-btn .p{font-size:17px;font-variant-numeric:tabular-nums;}
+  .slot .price-btn .c{font-size:10px;font-weight:700;letter-spacing:0.4px;margin-top:2px;text-transform:uppercase;}
+  .slot .price-btn:focus-visible{outline:3px solid var(--violet);outline-offset:2px;}
+  .slot .cost-txt{color:var(--ink-muted);font-size:14px;}
+  .slot .pay-btn{font-family:var(--font);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;margin-left:auto;border:2px solid;background:#fff;color:var(--ink);}
+  .slot .pay-btn:focus-visible{outline:3px solid var(--violet);outline-offset:2px;}
+  .slot .editing{width:100%;font-family:var(--font);font-size:22px;color:var(--ink);background:transparent;border:none;outline:none;padding:4px 0;border-bottom:3px solid var(--violet);}
+  .slot.now{background:var(--violet-soft)}
+  .slot.now .time{color:var(--violet);font-weight:700}
+  .slot.now .time::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--violet);margin-right:8px;vertical-align:middle;}
+  @media(min-width:720px){
+    .slot{grid-template-columns:130px 1fr}
+    .slot .time{font-size:20px;padding:20px 16px 14px 24px}
+    .slot .body{padding:12px 24px 12px 10px;}
+    .slot .text{font-size:24px;}
+    .slot .editing{font-size:24px;}
+    .slot .price-btn .p{font-size:19px;}
+    .slot .price-btn .c{font-size:11px;}
+    .slot .pay-btn{font-size:15px;padding:9px 16px;}
+    .slot .cost-txt{font-size:15px;}
+    .dow{font-size:28px}.date{font-size:17px}.status{font-size:19px}
+  }
+  .day-summary{position:sticky;bottom:0;background:var(--paper-2);border-top:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;}
+  .day-summary[hidden]{display:none}
+  .day-summary .txt{flex:1 1 auto;min-width:0;}
+  .day-summary .line1{font-size:16px;font-weight:700;color:var(--ink);}
+  .day-summary .line2{font-size:13px;color:var(--ink-muted);margin-top:3px;}
+  .day-summary .tag{font-weight:700;padding:1px 6px;border-radius:4px;font-variant-numeric:tabular-nums;}
+  .day-summary .tag.billed{background:#eceff1;color:#37474f;}
+  .day-summary .tag.paid{background:#e8f5e9;color:#1b5e20;}
+  .day-summary .tag.pending{background:#fff3e0;color:#bf360c;}
+  .day-summary button{background:var(--violet);color:#fff;border:none;border-radius:999px;padding:8px 16px;font-size:15px;font-family:var(--font);cursor:pointer;white-space:nowrap;}
+  .modal{position:fixed;inset:0;background:rgba(42,34,48,.7);display:flex;align-items:flex-end;justify-content:center;z-index:100;}
+  .modal[hidden]{display:none}
+  .modal .card{background:var(--paper);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:24px 22px 32px;font-size:18px;}
+  .modal h2{margin:0 0 12px;font-size:22px}
+  .modal h3{margin:18px 0 8px;font-size:16px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.5px}
+  .modal p{margin:0 0 12px;color:var(--ink-muted)}
+  .modal .sub{font-size:22px;font-weight:700;color:var(--ink);margin:0 0 16px}
+  .modal label{display:block;margin:14px 0;font-size:16px;font-weight:600;color:var(--ink);}
+  .modal label input{display:block;width:100%;margin-top:6px;padding:14px;font-family:var(--font);font-size:24px;text-align:right;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .modal label input:focus{outline:3px solid var(--violet);outline-offset:2px;}
+  .modal .total{display:flex;justify-content:space-between;padding:10px 0;font-size:18px;}
+  .modal .total.grand{border-top:2px solid var(--ink);font-weight:700;margin-top:6px;}
+  .modal .total .profit{color:var(--green)}
+  .modal .total .tag{font-weight:700;padding:2px 8px;border-radius:6px;font-variant-numeric:tabular-nums;}
+  .modal .total .tag.billed{background:#eceff1;color:#37474f;}
+  .modal .total .tag.paid{background:#e8f5e9;color:#1b5e20;}
+  .modal .total .tag.pending{background:#fff3e0;color:#bf360c;}
+  .modal .total .tag.cost{background:#fce4ec;color:#880e4f;}
+  .modal .item{padding:10px 0;border-bottom:1px solid var(--line)}
+  .modal .item .head{display:flex;justify-content:space-between;gap:8px;font-size:17px}
+  .modal .item .head .time{color:var(--ink-muted);font-variant-numeric:tabular-nums;font-weight:600}
+  .modal .item .head .amt{font-variant-numeric:tabular-nums;font-weight:700}
+  .modal .item .detail{font-size:15px;color:var(--ink-muted);margin-top:4px}
+  .modal .item .pay-status{font-size:13px;padding:3px 10px;border-radius:999px;display:inline-block;margin-top:6px;font-weight:700;border:1px solid transparent;}
+  .modal .item .link{font-size:14px;color:var(--violet);text-decoration:underline;cursor:pointer;background:none;border:none;padding:0;font-family:var(--font);margin-top:6px;display:inline-block;}
+  .modal .btns{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+  .modal .btn{flex:1 1 auto;min-height:54px;border:none;border-radius:12px;font-size:18px;font-family:var(--font);cursor:pointer;padding:12px 18px;}
+  .modal .btn-primary{background:var(--violet);color:#fff;}
+  .modal .btn-secondary{background:var(--paper-2);color:var(--ink);border:1px solid var(--line);}
+  .pay-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
+  .pay-options .pay-option{padding:16px;border-radius:12px;border:2px solid;background:#fff;font-family:var(--font);font-size:17px;cursor:pointer;text-align:center;font-weight:700;}
+  .pay-options .pay-option:focus-visible{outline:3px solid var(--violet);outline-offset:2px;}
+  .pay-options .pay-option[data-method="efectivo"]{background:#e8f5e9;color:#1b5e20;border-color:#a5d6a7;}
+  .pay-options .pay-option[data-method="tarjeta"]{background:#e3f2fd;color:#0d47a1;border-color:#90caf9;}
+  .pay-options .pay-option[data-method="bizum"]{background:#f3e5f5;color:#4a148c;border-color:#ce93d8;}
+  .pay-options .pay-option[data-method="transferencia"]{background:#eceff1;color:#37474f;border-color:#b0bec5;}
+  .pay-options .pay-option.pending{grid-column:1/-1;background:#fff3e0;color:#bf360c;border-color:#ffcc80;}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin:8px 0 16px;}
+  .legend .lg{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-weight:600;}
+  .legend .lg .dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;}
+  .service-row{display:grid;grid-template-columns:minmax(0,1fr) 90px 60px 60px 32px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);}
+  .service-row input,.service-row select{font-family:var(--font);font-size:14px;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%;min-width:0;}
+  .service-row input.num{text-align:right;font-variant-numeric:tabular-nums}
+  .service-row select{font-weight:700;cursor:pointer}
+  .service-row .del{background:none;border:none;color:var(--red);font-size:22px;cursor:pointer;padding:4px;line-height:1}
+  .service-head{display:grid;grid-template-columns:minmax(0,1fr) 90px 60px 60px 32px;gap:6px;font-size:12px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.5px;padding:4px 0 6px}
+  #searchClient{width:100%;font-family:var(--font);font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  .sync-btn{position:fixed;bottom:16px;right:16px;background:var(--paper-2);border:1px solid var(--line);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;opacity:0.5;z-index:50;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="bar" id="bar">
+    <button class="chev" id="prev" aria-label="Día anterior">‹</button>
+    <div class="titles">
+      <div class="dow" id="dow"></div>
+      <div class="date" id="datestr"></div>
+      <div class="status" id="status"></div>
+    </div>
+    <button class="chev" id="next" aria-label="Día siguiente">›</button>
+  </header>
+  <div class="hoy-row">
+    <button class="hoy" id="today" hidden>Hoy</button>
+    <button class="precios" id="openPrices" type="button">Precios y categorías</button>
+  </div>
+  <div id="notice" hidden></div>
+  <main id="scroll">
+    <button class="extend" id="extendBefore" type="button">+ Añadir una hora antes</button>
+    <div id="slots" aria-label="Citas del día"></div>
+    <button class="extend" id="extendAfter" type="button">+ Añadir una hora después</button>
+    <div class="day-summary" id="daySummary" hidden>
+      <div class="txt" id="summaryText"></div>
+      <button id="openSummary" type="button">Detalle</button>
+    </div>
+  </main>
+</div>
+
+<button class="sync-btn" id="openSetup" title="Sincronizar dispositivos">☁️</button>
+
+<div class="modal" id="summaryModal" hidden>
+  <div class="card">
+    <h2 id="summaryTitle">Resumen del día</h2>
+    <div id="summaryBody"></div>
+    <h3>Buscar clienta</h3>
+    <input type="text" id="searchClient" placeholder="Escribe un nombre…" autocomplete="off">
+    <div id="searchResults"></div>
+    <div class="btns">
+      <button class="btn btn-secondary" id="closeSummary">Cerrar</button>
+      <button class="btn btn-primary" id="openServices">Editar catálogo</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="priceModal" hidden>
+  <div class="card">
+    <h2>Precio y coste</h2>
+    <p class="sub" id="priceSub"></p>
+    <label>Precio (€)
+      <input type="number" id="priceInput" inputmode="decimal" step="0.01" min="0">
+    </label>
+    <label>Coste estimado de productos (€)
+      <input type="number" id="costInput" inputmode="decimal" step="0.01" min="0">
+    </label>
+    <div class="btns">
+      <button class="btn btn-secondary" id="cancelPrice">Cancelar</button>
+      <button class="btn btn-primary" id="savePrice">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="payModal" hidden>
+  <div class="card">
+    <h2>¿Cómo ha pagado?</h2>
+    <p class="sub" id="paySub"></p>
+    <div class="pay-options">
+      <button class="pay-option" type="button" data-method="efectivo">Efectivo</button>
+      <button class="pay-option" type="button" data-method="tarjeta">Tarjeta</button>
+      <button class="pay-option" type="button" data-method="bizum">Bizum</button>
+      <button class="pay-option" type="button" data-method="transferencia">Transferencia</button>
+      <button class="pay-option pending" type="button" data-method="">Pendiente (sin cobrar)</button>
+    </div>
+    <div class="btns">
+      <button class="btn btn-secondary" id="cancelPay">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="servicesModal" hidden>
+  <div class="card">
+    <h2>Catálogo de servicios</h2>
+    <p>Precio, coste y categoría. El color de cada fila indica la categoría.</p>
+    <h3>Categorías</h3>
+    <div class="legend" id="catLegend"></div>
+    <div class="service-head">
+      <div>Servicio</div><div>Categoría</div><div style="text-align:right">Precio €</div><div style="text-align:right">Coste €</div><div></div>
+    </div>
+    <div id="servicesList"></div>
+    <button class="btn btn-secondary" id="addService" type="button" style="margin-top:14px;width:100%">+ Añadir servicio</button>
+    <div class="btns">
+      <button class="btn btn-primary" id="closeServices">Guardar y cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="historyModal" hidden>
+  <div class="card">
+    <h2 id="historyTitle">Historial</h2>
+    <div id="historyBody"></div>
+    <div class="btns">
+      <button class="btn btn-primary" id="closeHistory">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="setup" hidden>
+  <div class="card">
+    <h2>Conectar dispositivos</h2>
+    <p>Para que el móvil y el ordenador compartan las mismas citas, se necesita configurar esto <b>una sola vez</b>.</p>
+    <ol style="padding-left:22px;margin:0 0 14px;font-size:16px;">
+      <li>Abre <b>console.firebase.google.com</b> con tu cuenta de Google.</li>
+      <li>Pulsa <b>«Crear proyecto»</b>.</li>
+      <li>Pulsa el icono <b>&lt;/&gt;</b> (Web), ponle apodo y <b>«Registrar app»</b>.</li>
+      <li>Copia el bloque <b>const firebaseConfig</b> y pégalo abajo.</li>
+      <li>En <b>«Realtime Database»</b> → <b>«Crear base de datos»</b> → <b>«Modo de prueba»</b>.</li>
+      <li>Vuelve aquí y pulsa <b>«Conectar»</b>.</li>
+    </ol>
+    <textarea id="configInput" placeholder="Pega aquí el bloque completo" style="width:100%;min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);"></textarea>
+    <div id="setupErr" style="color:var(--red);font-size:16px;margin-top:10px;min-height:1.2em"></div>
+    <div class="btns">
+      <button class="btn btn-secondary" id="cancelSetup">Cancelar</button>
+      <button class="btn btn-primary" id="doConnect">Conectar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var KEY_MAIN='atelier.agenda.v1', KEY_CITY='atelier.ciudad.v1', KEY_WX='atelier.tiempo.v1',
+      KEY_CFG='atelier.firebase.v1', KEY_PENDING='atelier.pending.v1', KEY_HOURS='atelier.hours.v1',
+      KEY_SERVICES='atelier.services.v1', KEY_CITY_AUTO='atelier.city.auto';
+  var BASE_START=8, BASE_END=21;
+  var DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  function pad(n){return String(n).padStart(2,'0');}
+  function isoDate(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+  function normalize(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function parseNum(s){s=String(s||'').trim().replace(',','.');var n=parseFloat(s);return isNaN(n)?null:n;}
+
+  var CATEGORIES = {
+    corte:      { label:'Corte',       bg:'#e3f2fd', fg:'#0d47a1', border:'#90caf9' },
+    color:      { label:'Color',       bg:'#fce4ec', fg:'#880e4f', border:'#f48fb1' },
+    mechas:     { label:'Mechas',      bg:'#fff3e0', fg:'#e65100', border:'#ffcc80' },
+    peinado:    { label:'Peinado',     bg:'#f3e5f5', fg:'#4a148c', border:'#ce93d8' },
+    tratamiento:{ label:'Tratamiento', bg:'#e8f5e9', fg:'#1b5e20', border:'#a5d6a7' },
+    barberia:   { label:'Barbería',    bg:'#efebe9', fg:'#3e2723', border:'#bcaaa4' },
+    otros:      { label:'Otros',       bg:'#eceff1', fg:'#37474f', border:'#b0bec5' }
+  };
+  var PAY_METHODS = {
+    efectivo:      { label:'Efectivo',      bg:'#e8f5e9', fg:'#1b5e20', border:'#a5d6a7' },
+    tarjeta:       { label:'Tarjeta',       bg:'#e3f2fd', fg:'#0d47a1', border:'#90caf9' },
+    bizum:         { label:'Bizum',         bg:'#f3e5f5', fg:'#4a148c', border:'#ce93d8' },
+    transferencia: { label:'Transferencia', bg:'#eceff1', fg:'#37474f', border:'#b0bec5' },
+    pendiente:     { label:'Pendiente',     bg:'#fff3e0', fg:'#bf360c', border:'#ffcc80' }
+  };
+  function catColor(key){ return CATEGORIES[key] || CATEGORIES.otros; }
+  function payColor(key){ return PAY_METHODS[key] || PAY_METHODS.pendiente; }
+
+  var DEFAULT_SERVICES = [
+    {id:'corte',        name:'Corte',        price:15, cost:0,   cat:'corte'},
+    {id:'corte-hombre', name:'Corte hombre', price:12, cost:0,   cat:'corte'},
+    {id:'corte-nino',   name:'Corte niño',   price:10, cost:0,   cat:'corte'},
+    {id:'peinado',      name:'Peinado',      price:15, cost:0,   cat:'peinado'},
+    {id:'tinte',        name:'Tinte',        price:45, cost:5,   cat:'color'},
+    {id:'mechas',       name:'Mechas',       price:60, cost:8,   cat:'mechas'},
+    {id:'lavado',       name:'Lavado',       price:5,  cost:0.5, cat:'otros'},
+    {id:'secado',       name:'Secado',       price:10, cost:0,   cat:'peinado'},
+    {id:'tratamiento',  name:'Tratamiento',  price:20, cost:3,   cat:'tratamiento'},
+    {id:'barba',        name:'Barba',        price:8,  cost:0,   cat:'barberia'}
+  ];
+
+  function inferCat(name){
+    var n = normalize(name);
+    if (/^corte/.test(n)) return 'corte';
+    if (/tinte|color/.test(n)) return 'color';
+    if (/mecha/.test(n)) return 'mechas';
+    if (/peinado|secado/.test(n)) return 'peinado';
+    if (/tratamiento|mascarilla/.test(n)) return 'tratamiento';
+    if (/barba|barber/.test(n)) return 'barberia';
+    return 'otros';
+  }
+
+  var services = (function(){
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY_SERVICES));
+      if (Array.isArray(s) && s.length){ s.forEach(function(sv){ if (!sv.cat) sv.cat = inferCat(sv.name); }); return s; }
+    } catch(_){}
+    return JSON.parse(JSON.stringify(DEFAULT_SERVICES));
+  })();
+  function saveServices(){ try { localStorage.setItem(KEY_SERVICES, JSON.stringify(services)); } catch(_){} }
+
+  function matchServices(text){
+    var t=' '+normalize(text)+' ';
+    var sorted=services.slice().sort(function(a,b){return (b.name||'').length-(a.name||'').length;});
+    var matched=[];
+    sorted.forEach(function(s){
+      var n=normalize(s.name); if(!n) return;
+      var re=new RegExp('\\b'+n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b');
+      if(re.test(t)){ matched.push(s); t=t.replace(re,' '); }
+    });
+    return matched;
+  }
+  function sumServices(list){ var r=0,c=0; list.forEach(function(s){r+=Number(s.price)||0;c+=Number(s.cost)||0;}); return {revenue:r,cost:c}; }
+  function extractExplicitPrice(text){
+    var m=text.match(/(\d+(?:[.,]\d+)?)\s*(?:€|eur|euros?)\b/i);
+    if(m) return parseFloat(m[1].replace(',','.'));
+    m=text.match(/€\s*(\d+(?:[.,]\d+)?)/i);
+    if(m) return parseFloat(m[1].replace(',','.'));
+    return null;
+  }
+  function primaryCat(matched){
+    if (matched && matched.length){ var c = matched[0].cat || inferCat(matched[0].name); return CATEGORIES[c] ? c : 'otros'; }
+    return 'otros';
+  }
+
+  var data = {};
+  try{ var raw=localStorage.getItem(KEY_MAIN); if(raw){ var p=JSON.parse(raw); if(p&&typeof p==='object') data=p; } }catch(_){}
+  var pending = {};
+  try{ var rp=localStorage.getItem(KEY_PENDING); if(rp){ var pp=JSON.parse(rp); if(pp&&typeof pp==='object') pending=pp; } }catch(_){}
+
+  function normalizeAppointment(v){
+    if(!v) return null;
+    if(typeof v==='string') return {text:v,price:null,cost:null,paid:false,method:null};
+    return { text:String(v.text||''), price:(typeof v.price==='number')?v.price:null, cost:(typeof v.cost==='number')?v.cost:null, paid:!!v.paid, method:v.method||null };
+  }
+
+  var hoursRange = (function(){
+    try{ var r=JSON.parse(localStorage.getItem(KEY_HOURS)); if(r&&typeof r.start==='number'&&typeof r.end==='number'&&r.start>=0&&r.end<=24&&r.start<r.end) return r; }catch(_){}
+    return {start:BASE_START,end:BASE_END};
+  })();
+  function saveHours(){ try { localStorage.setItem(KEY_HOURS, JSON.stringify(hoursRange)); } catch(_){} }
+
+  var currentDate=new Date();
+  var lastKnownDayIso = isoDate(new Date());
+  var fbRef=null, fbConnected=false, firstLoad=true;
+
+  function syncToToday(){
+    var now = new Date();
+    var nowIso = isoDate(now);
+    if (nowIso !== lastKnownDayIso){
+      var wasViewingToday = (isoDate(currentDate) === lastKnownDayIso);
+      lastKnownDayIso = nowIso;
+      if (wasViewingToday) currentDate = now;
+      render();
+    }
+  }
+
+  function persistLocal(){ try { localStorage.setItem(KEY_MAIN, JSON.stringify(data)); } catch(_){} }
+  function persistPending(){ try { localStorage.setItem(KEY_PENDING, JSON.stringify(pending)); } catch(_){} }
+
+  var bar=document.getElementById('bar'),dowEl=document.getElementById('dow'),
+      dateEl=document.getElementById('datestr'),statusEl=document.getElementById('status'),
+      todayBtn=document.getElementById('today'),prevBtn=document.getElementById('prev'),
+      nextBtn=document.getElementById('next'),slotsEl=document.getElementById('slots'),
+      noticeEl=document.getElementById('notice'),scrollEl=document.getElementById('scroll'),
+      extendBefore=document.getElementById('extendBefore'),extendAfter=document.getElementById('extendAfter'),
+      daySummary=document.getElementById('daySummary'),summaryText=document.getElementById('summaryText'),
+      summaryModal=document.getElementById('summaryModal'),summaryTitle=document.getElementById('summaryTitle'),
+      summaryBody=document.getElementById('summaryBody'),searchClient=document.getElementById('searchClient'),
+      searchResults=document.getElementById('searchResults'),
+      servicesModal=document.getElementById('servicesModal'),servicesList=document.getElementById('servicesList'),
+      catLegend=document.getElementById('catLegend'),
+      historyModal=document.getElementById('historyModal'),historyTitle=document.getElementById('historyTitle'),
+      historyBody=document.getElementById('historyBody'),
+      priceModal=document.getElementById('priceModal'),priceSub=document.getElementById('priceSub'),
+      priceInput=document.getElementById('priceInput'),costInput=document.getElementById('costInput'),
+      payModal=document.getElementById('payModal'),paySub=document.getElementById('paySub'),
+      setupEl=document.getElementById('setup'),setupErr=document.getElementById('setupErr'),
+      configInput=document.getElementById('configInput');
+
+  function allSlots(){ var a=[]; for(var h=hoursRange.start;h<hoursRange.end;h++){a.push(pad(h)+':00');a.push(pad(h)+':30');} return a; }
+  function currentSlot(){ var n=new Date(),h=n.getHours(),m=n.getMinutes()<30?0:30; if(h<hoursRange.start||h>=hoursRange.end) return null; return pad(h)+':'+pad(m); }
+  function autoExpandFromData(){
+    var s=hoursRange.start,e=hoursRange.end;
+    Object.keys(data).forEach(function(iso){
+      var d=data[iso]; if(!d||typeof d!=='object') return;
+      Object.keys(d).forEach(function(t){
+        var h=parseInt(t.split(':')[0],10);
+        if(!isNaN(h)){ if(h<s)s=h; if(h+1>e)e=h+1; }
+      });
+    });
+    if(s!==hoursRange.start||e!==hoursRange.end){ hoursRange={start:s,end:e}; saveHours(); }
+  }
+
+  function calcDay(iso){
+    var d=data[iso]||{};
+    var items=[],billed=0,paid=0,cost=0,count=0;
+    Object.keys(d).sort().forEach(function(t){
+      var a=normalizeAppointment(d[t]); if(!a||!a.text) return;
+      count++;
+      var matched=matchServices(a.text);
+      var sv=sumServices(matched);
+      var ex=extractExplicitPrice(a.text);
+      var autoP=ex!==null?ex:sv.revenue;
+      var price=a.price!=null?a.price:autoP;
+      var c=a.cost!=null?a.cost:sv.cost;
+      billed+=price; cost+=c;
+      if(a.paid) paid+=price;
+      items.push({time:t,appt:a,services:matched,price:price,cost:c,paid:a.paid,method:a.method,cat:primaryCat(matched)});
+    });
+    return {items:items,count:count,billed:billed,paid:paid,pending:billed-paid,cost:cost,profit:billed-cost};
+  }
+  function fmtEuro(n){ n=Number(n)||0; return n.toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:2})+' €'; }
+
+  function updateSummaryBar(){
+    var d=calcDay(isoDate(currentDate));
+    if(d.count===0){ daySummary.hidden=true; return; }
+    daySummary.hidden=false;
+    var profitColor=d.profit>=0?'var(--green)':'var(--red)';
+    summaryText.innerHTML=
+      '<div class="line1">'+d.count+(d.count===1?' cita':' citas')+' · Beneficio <span style="color:'+profitColor+'">'+fmtEuro(d.profit)+'</span></div>'+
+      '<div class="line2">Facturado <span class="tag billed">'+fmtEuro(d.billed)+'</span> · Cobrado <span class="tag paid">'+fmtEuro(d.paid)+'</span> · Pendiente <span class="tag pending">'+fmtEuro(d.pending)+'</span></div>';
+  }
+
+  function updateExtendButtons(){ extendBefore.hidden=hoursRange.start<=0; extendAfter.hidden=hoursRange.end>=24; }
+  function scrollToNow(){
+    var el=document.querySelector('.slot.now'); if(!el) return;
+    var r=el.getBoundingClientRect(),sr=scrollEl.getBoundingClientRect();
+    var off=r.top-sr.top+scrollEl.scrollTop;
+    scrollEl.scrollTo({top:Math.max(0,off-60),behavior:'auto'});
+  }
+
+  function render(){
+    autoExpandFromData();
+    var iso=isoDate(currentDate),hoyIso=isoDate(new Date()),day=data[iso]||{};
+    dowEl.textContent=DIAS[currentDate.getDay()];
+    dateEl.textContent=currentDate.getDate()+' de '+MESES[currentDate.getMonth()]+' de '+currentDate.getFullYear();
+    todayBtn.hidden=(iso===hoyIso);
+    var now=(iso===hoyIso)?currentSlot():null;
+
+    slotsEl.innerHTML='';
+    allSlots().forEach(function(t){
+      var row=document.createElement('div');
+      row.className='slot'+(t===now?' now':'');
+      row.dataset.time=t;
+      var timeEl=document.createElement('div'); timeEl.className='time'; timeEl.textContent=t; row.appendChild(timeEl);
+      var bodyEl=document.createElement('div'); bodyEl.className='body';
+
+      var appt=normalizeAppointment(day[t]);
+      if(!appt||!appt.text){
+        var cEl=document.createElement('div'); cEl.className='content'; cEl.tabIndex=0; cEl.setAttribute('role','button'); cEl.setAttribute('aria-label','Hueco libre a las '+t+'. Toca para escribir.'); bodyEl.appendChild(cEl);
+      } else {
+        var matched=matchServices(appt.text);
+        var svcSum=sumServices(matched);
+        var ex=extractExplicitPrice(appt.text);
+        var autoP=ex!==null?ex:svcSum.revenue;
+        var price=appt.price!=null?appt.price:autoP;
+        var cost=appt.cost!=null?appt.cost:svcSum.cost;
+        var catKey=primaryCat(matched);
+        var cc=catColor(catKey);
+
+        var textEl=document.createElement('div'); textEl.className='text'; textEl.tabIndex=0; textEl.setAttribute('role','button'); textEl.textContent=appt.text; textEl.setAttribute('aria-label',appt.text+'. Toca para editar el texto.'); bodyEl.appendChild(textEl);
+        var meta=document.createElement('div'); meta.className='meta';
+
+        var priceBtn=document.createElement('button'); priceBtn.type='button'; priceBtn.className='price-btn'; priceBtn.style.background=cc.bg; priceBtn.style.color=cc.fg; priceBtn.style.borderColor=cc.border;
+        priceBtn.innerHTML='<span class="p">'+fmtEuro(price)+'</span><span class="c">'+esc(cc.label)+'</span>'; priceBtn.setAttribute('aria-label','Precio '+fmtEuro(price)+'. Categoría '+cc.label+'. Toca para cambiar precio y coste.'); meta.appendChild(priceBtn);
+
+        var costTxt=document.createElement('span'); costTxt.className='cost-txt'; costTxt.textContent='Coste '+fmtEuro(cost); meta.appendChild(costTxt);
+
+        var payBtn=document.createElement('button'); payBtn.type='button'; payBtn.className='pay-btn';
+        var payKey, payLabel;
+        if(appt.paid){ payKey = appt.method && PAY_METHODS[appt.method] ? appt.method : 'efectivo'; payLabel = '✓ '+(appt.method ? PAY_METHODS[appt.method].label : 'Cobrado'); }
+        else { payKey = 'pendiente'; payLabel = 'Pendiente'; }
+        var pc=payColor(payKey); payBtn.style.background=pc.bg; payBtn.style.color=pc.fg; payBtn.style.borderColor=pc.border; payBtn.textContent=payLabel;
+        payBtn.setAttribute('aria-label', appt.paid ? 'Cobrado con '+(appt.method||'método no indicado')+'. Toca para cambiar.' : 'Pendiente de cobro. Toca para marcar como cobrado.'); meta.appendChild(payBtn);
+
+        bodyEl.appendChild(meta);
+      }
+      row.appendChild(bodyEl); slotsEl.appendChild(row);
+    });
+
+    updateExtendButtons(); updateSummaryBar();
+    if(firstLoad){ firstLoad=false; if(iso===hoyIso) setTimeout(scrollToNow,80); }
+  }
+
+  function startTextEdit(row){
+    if(row.querySelector('.editing')) return;
+    var time=row.dataset.time; var iso=isoDate(currentDate);
+    var existing=normalizeAppointment((data[iso]||{})[time]); var cur=existing?existing.text:'';
+    var targetEl=row.querySelector('.text')||row.querySelector('.content'); if(!targetEl) return;
+    var metaEl=row.querySelector('.meta'); if(metaEl) metaEl.style.display='none';
+
+    var input=document.createElement('input'); input.type='text'; input.className='editing'; input.value=cur; input.autocomplete='off'; input.spellcheck=false; input.setAttribute('aria-label','Cita de las '+time);
+    targetEl.replaceWith(input); setTimeout(function(){input.focus();input.select();},0);
+
+    var done=false;
+    function commit(){
+      if(done) return; done=true;
+      var val=input.value.replace(/\s+/g,' ').trim();
+      if(val){
+        if(!data[iso]) data[iso]={};
+        if(!existing){ var sv=sumServices(matchServices(val)); data[iso][time]={text:val,price:sv.revenue,cost:sv.cost,paid:false,method:null}; }
+        else { existing.text=val; data[iso][time]=existing; }
+      } else if(data[iso]){ delete data[iso][time]; if(!Object.keys(data[iso]).length) delete data[iso]; }
+      persistLocal(); pending[iso+'|'+time]=data[iso]&&data[iso][time]?data[iso][time]:null; persistPending(); pushPending(); render();
+    }
+    input.addEventListener('blur',commit);
+    input.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();input.blur();} else if(e.key==='Escape'){e.preventDefault();done=true;render();} });
+  }
+
+  var priceEdit={iso:null,time:null};
+  function openPriceEditor(time){
+    var iso=isoDate(currentDate); var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
+    var sv=sumServices(matchServices(appt.text)); var ex=extractExplicitPrice(appt.text); var autoP=ex!==null?ex:sv.revenue;
+    priceEdit={iso:iso,time:time}; priceSub.textContent=appt.text;
+    priceInput.value=(appt.price!=null?appt.price:autoP); costInput.value=(appt.cost!=null?appt.cost:sv.cost);
+    priceModal.hidden=false; setTimeout(function(){priceInput.focus();priceInput.select();},0);
+  }
+  document.getElementById('savePrice').addEventListener('click',function(){
+    var iso=priceEdit.iso,time=priceEdit.time; if(!iso||!time) return;
+    var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
+    var p=parseNum(priceInput.value); if(p===null) p=0; var c=parseNum(costInput.value); if(c===null) c=0;
+    appt.price=p; appt.cost=c; data[iso][time]=appt; persistLocal(); pending[iso+'|'+time]=appt; persistPending(); pushPending();
+    priceModal.hidden=true; priceEdit={iso:null,time:null}; render();
+  });
+  document.getElementById('cancelPrice').addEventListener('click',function(){ priceModal.hidden=true; priceEdit={iso:null,time:null}; });
+
+  var payEdit={iso:null,time:null};
+  function openPayPicker(time){
+    var iso=isoDate(currentDate); var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
+    var sv=sumServices(matchServices(appt.text)); var ex=extractExplicitPrice(appt.text); var autoP=ex!==null?ex:sv.revenue; var p=appt.price!=null?appt.price:autoP;
+    payEdit={iso:iso,time:time}; paySub.textContent=appt.text+' · '+fmtEuro(p); payModal.hidden=false;
+  }
+  document.querySelectorAll('#payModal [data-method]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var iso=payEdit.iso,time=payEdit.time; if(!iso||!time) return;
+      var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
+      var m=btn.getAttribute('data-method');
+      if(m===''){ appt.paid=false; appt.method=null; } else { appt.paid=true; appt.method=m; }
+      data[iso][time]=appt; persistLocal(); pending[iso+'|'+time]=appt; persistPending(); pushPending();
+      payModal.hidden=true; payEdit={iso:null,time:null}; render();
+    });
+  });
+  document.getElementById('cancelPay').addEventListener('click',function(){ payModal.hidden=true; payEdit={iso:null,time:null}; });
+
+  slotsEl.addEventListener('click',function(e){
+    var row=e.target.closest('.slot'); if(!row) return; var time=row.dataset.time;
+    if(e.target.closest('.price-btn')||e.target.closest('.cost-txt')){ openPriceEditor(time); return; }
+    if(e.target.closest('.pay-btn')){ openPayPicker(time); return; }
+    if(e.target.closest('.text')||e.target.closest('.content')){ startTextEdit(row); return; }
+  });
+  slotsEl.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ') return;
+    var el=e.target;
+    if(el.classList.contains('text')||el.classList.contains('content')){ e.preventDefault(); var row=el.closest('.slot'); if(row) startTextEdit(row); }
+  });
+
+  extendBefore.addEventListener('click',function(){ if(hoursRange.start>0){ hoursRange.start-=1; saveHours(); render(); scrollEl.scrollTo({top:0,behavior:'smooth'}); } });
+  extendAfter.addEventListener('click',function(){ if(hoursRange.end<24){ hoursRange.end+=1; saveHours(); render(); setTimeout(function(){ scrollEl.scrollTo({top:scrollEl.scrollHeight,behavior:'smooth'}); },30); } });
+
+  prevBtn.addEventListener('click',function(){ currentDate.setDate(currentDate.getDate()-1); render(); });
+  nextBtn.addEventListener('click',function(){ currentDate.setDate(currentDate.getDate()+1); render(); });
+  todayBtn.addEventListener('click',function(){ currentDate = new Date(); lastKnownDayIso = isoDate(currentDate); render(); setTimeout(scrollToNow,80); });
+
+  function openSummaryModal(){
+    var iso=isoDate(currentDate); var d=calcDay(iso); var fecha=currentDate.getDate()+' de '+MESES[currentDate.getMonth()]+' de '+currentDate.getFullYear(); summaryTitle.textContent='Resumen — '+fecha;
+    if(d.count===0){ summaryBody.innerHTML='<p>No hay citas este día.</p>'; }
+    else {
+      var html='';
+      d.items.forEach(function(it){
+        var cc=catColor(it.cat); var payKey = it.paid ? (it.method||'efectivo') : 'pendiente'; var pc = payColor(payKey);
+        var payLabel = it.paid ? '✓ '+(it.method ? PAY_METHODS[it.method].label : 'Cobrado') : 'Pendiente';
+        var svcNames=it.services.map(function(s){return esc(s.name);}).join(' + '); var name=clientName(it.appt.text);
+        html+='<div class="item"><div class="head"><span class="time">'+esc(it.time)+'</span><span class="amt">'+fmtEuro(it.price)+'</span></div>';
+        html+='<div class="detail">'+esc(it.appt.text)+'</div>';
+        html+='<div class="detail">'+(svcNames||'—')+' · coste '+fmtEuro(it.cost)+' · beneficio '+fmtEuro(it.price-it.cost)+'</div>';
+        html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">';
+        html+='<span class="pay-status" style="background:'+cc.bg+';color:'+cc.fg+';border-color:'+cc.border+'">'+esc(cc.label)+'</span>';
+        html+='<span class="pay-status" style="background:'+pc.bg+';color:'+pc.fg+';border-color:'+pc.border+'">'+payLabel+'</span></div>';
+        if(name) html+='<button class="link" data-client="'+esc(name)+'">Ver historial de '+esc(name)+'</button>';
+        html+='</div>';
+      });
+      html+='<div class="total"><span>Facturado</span><span class="tag billed">'+fmtEuro(d.billed)+'</span></div>';
+      html+='<div class="total" style="font-size:16px;padding-top:2px"><span>Cobrado</span><span class="tag paid">'+fmtEuro(d.paid)+'</span></div>';
+      html+='<div class="total" style="font-size:16px;padding-top:2px"><span>Pendiente</span><span class="tag pending">'+fmtEuro(d.pending)+'</span></div>';
+      html+='<div class="total" style="font-size:16px;padding-top:2px"><span>Coste productos</span><span class="tag cost">'+fmtEuro(d.cost)+'</span></div>';
+      html+='<div class="total grand"><span>Beneficio</span><span class="profit">'+fmtEuro(d.profit)+'</span></div>';
+      summaryBody.innerHTML=html;
+    }
+    searchClient.value=''; searchResults.innerHTML=''; summaryModal.hidden=false;
+  }
+  document.getElementById('openSummary').addEventListener('click',openSummaryModal);
+  document.getElementById('closeSummary').addEventListener('click',function(){summaryModal.hidden=true;});
+  document.getElementById('openServices').addEventListener('click',function(){summaryModal.hidden=true;renderServicesEditor();servicesModal.hidden=false;});
+  document.getElementById('closeHistory').addEventListener('click',function(){historyModal.hidden=true;});
+  document.getElementById('openPrices').addEventListener('click',function(){renderServicesEditor();servicesModal.hidden=false;});
+  document.getElementById('closeServices').addEventListener('click',function(){servicesModal.hidden=true;updateSummaryBar();render();});
+
+  function clientName(text){
+    var matched=matchServices(text); var t=' '+text+' ';
+    matched.forEach(function(s){ var re=new RegExp('\\b'+(s.name||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'); t=t.replace(re,' '); });
+    t=t.replace(/[+,]/g,' ').replace(/\d+(?:[.,]\d+)?\s*(?:€|eur|euros?)?/gi,' ').replace(/\s+/g,' ').trim();
+    return t.split(' ').filter(Boolean).slice(0,2).join(' ');
+  }
+
+  function openHistory(name){
+    var results=[];
+    Object.keys(data).sort().forEach(function(iso){
+      var day=data[iso];
+      Object.keys(day).sort().forEach(function(t){
+        var a=normalizeAppointment(day[t]); if(!a||!a.text) return;
+        if(normalize(a.text).indexOf(normalize(name))!==-1){
+          var matched=matchServices(a.text); var sv=sumServices(matched); var ex=extractExplicitPrice(a.text);
+          var autoP=ex!==null?ex:sv.revenue; var p=a.price!=null?a.price:autoP; var c=a.cost!=null?a.cost:sv.cost;
+          results.push({iso:iso,time:t,appt:a,services:matched,price:p,cost:c,paid:a.paid,method:a.method,cat:primaryCat(matched)});
+        }
+      });
+    });
+    historyTitle.textContent='Historial de '+name;
+    if(!results.length){ historyBody.innerHTML='<p>No hay visitas registradas.</p>'; }
+    else {
+      var totalB=0,totalP=0,totalC=0; var html='';
+      results.forEach(function(r){
+        var dd=new Date(r.iso+'T12:00:00'); var fecha=dd.getDate()+'/'+pad(dd.getMonth()+1)+'/'+dd.getFullYear();
+        var cc=catColor(r.cat); var payKey=r.paid?(r.method||'efectivo'):'pendiente'; var pc=payColor(payKey);
+        var payLabel=r.paid?'✓ '+(r.method?PAY_METHODS[r.method].label:'Cobrado'):'Pendiente'; var svc=r.services.map(function(s){return esc(s.name);}).join(' + ')||'—';
+        html+='<div class="item"><div class="head"><span class="time">'+fecha+' · '+esc(r.time)+'</span><span class="amt">'+fmtEuro(r.price)+'</span></div>';
+        html+='<div class="detail">'+svc+' · coste '+fmtEuro(r.cost)+'</div>';
+        html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">';
+        html+='<span class="pay-status" style="background:'+cc.bg+';color:'+cc.fg+';border-color:'+cc.border+'">'+esc(cc.label)+'</span>';
+        html+='<span class="pay-status" style="background:'+pc.bg+';color:'+pc.fg+';border-color:'+pc.border+'">'+payLabel+'</span></div></div>';
+        totalB+=r.price; totalC+=r.cost; if(r.paid) totalP+=r.price;
+      });
+      html+='<div class="total"><span>Facturado</span><span class="tag billed">'+fmtEuro(totalB)+'</span></div>';
+      html+='<div class="total" style="font-size:16px;padding-top:2px"><span>Cobrado</span><span class="tag paid">'+fmtEuro(totalP)+'</span></div>';
+      html+='<div class="total" style="font-size:16px;padding-top:2px"><span>Pendiente</span><span class="tag pending">'+fmtEuro(totalB-totalP)+'</span></div>';
+      html+='<div class="total grand"><span>Beneficio</span><span class="profit">'+fmtEuro(totalB-totalC)+'</span></div>';
+      historyBody.innerHTML=html;
+    }
+    historyModal.hidden=false;
+  }
+  summaryBody.addEventListener('click',function(e){ var btn=e.target.closest('[data-client]'); if(btn) openHistory(btn.dataset.client); });
+
+  searchClient.addEventListener('input',function(){
+    var q=searchClient.value.trim(); if(!q){ searchResults.innerHTML=''; return; } var found={};
+    Object.keys(data).forEach(function(iso){
+      var day=data[iso];
+      Object.keys(day).forEach(function(t){
+        var a=normalizeAppointment(day[t]); if(!a||!a.text) return;
+        if(normalize(a.text).indexOf(normalize(q))!==-1){
+          var n=clientName(a.text)||q; if(!found[n]) found[n]={count:0,billed:0,paid:0,cost:0};
+          var sv=sumServices(matchServices(a.text)); var ex=extractExplicitPrice(a.text); var autoP=ex!==null?ex:sv.revenue;
+          var p=a.price!=null?a.price:autoP; var c=a.cost!=null?a.cost:sv.cost;
+          found[n].count++; found[n].billed+=p; found[n].cost+=c; if(a.paid) found[n].paid+=p;
+        }
+      });
+    });
+    var names=Object.keys(found); if(!names.length){ searchResults.innerHTML='<p style="font-size:15px">Sin resultados.</p>'; return; } var html='';
+    names.forEach(function(n){
+      var f=found[n]; html+='<div class="item"><div class="head"><span class="time">'+esc(n)+'</span><span class="amt">'+fmtEuro(f.billed)+'</span></div>';
+      html+='<div class="detail">'+f.count+' visita(s) · cobrado '+fmtEuro(f.paid)+' · beneficio '+fmtEuro(f.billed-f.cost)+'</div>';
+      html+='<button class="link" data-client="'+esc(n)+'">Ver historial</button></div>';
+    });
+    searchResults.innerHTML=html;
+  });
+  searchResults.addEventListener('click',function(e){ var btn=e.target.closest('[data-client]'); if(btn) openHistory(btn.dataset.client); });
+
+  function renderLegend(){
+    catLegend.innerHTML='';
+    Object.keys(CATEGORIES).forEach(function(k){
+      var c=CATEGORIES[k]; var el=document.createElement('div'); el.className='lg';
+      el.style.background=c.bg; el.style.color=c.fg; el.style.border='1px solid '+c.border;
+      el.innerHTML='<span class="dot" style="background:'+c.fg+'"></span>'+esc(c.label); catLegend.appendChild(el);
+    });
+  }
+
+  function renderServicesEditor(){
+    renderLegend(); servicesList.innerHTML='';
+    services.forEach(function(s,idx){
+      var cc=catColor(s.cat||inferCat(s.name)); var row=document.createElement('div'); row.className='service-row';
+      var nameInp=document.createElement('input'); nameInp.type='text'; nameInp.value=s.name; nameInp.dataset.idx=idx; nameInp.dataset.field='name'; nameInp.setAttribute('aria-label','Nombre'); row.appendChild(nameInp);
+      var sel=document.createElement('select'); sel.dataset.idx=idx; sel.dataset.field='cat'; sel.setAttribute('aria-label','Categoría');
+      Object.keys(CATEGORIES).forEach(function(k){ var op=document.createElement('option'); op.value=k; op.textContent=CATEGORIES[k].label; if ((s.cat||'otros')===k) op.selected=true; sel.appendChild(op); });
+      sel.style.background=cc.bg; sel.style.color=cc.fg; sel.style.borderColor=cc.border; row.appendChild(sel);
+      var priceInp=document.createElement('input'); priceInp.type='number'; priceInp.step='0.01'; priceInp.min='0'; priceInp.className='num'; priceInp.value=(Number(s.price)||0); priceInp.dataset.idx=idx; priceInp.dataset.field='price'; priceInp.setAttribute('aria-label','Precio'); row.appendChild(priceInp);
+      var costInp=document.createElement('input'); costInp.type='number'; costInp.step='0.01'; costInp.min='0'; costInp.className='num'; costInp.value=(Number(s.cost)||0); costInp.dataset.idx=idx; costInp.dataset.field='cost'; costInp.setAttribute('aria-label','Coste'); row.appendChild(costInp);
+      var del=document.createElement('button'); del.type='button'; del.className='del'; del.dataset.idx=idx; del.setAttribute('aria-label','Borrar'); del.textContent='×'; row.appendChild(del);
+      servicesList.appendChild(row);
+    });
+  }
+  servicesList.addEventListener('input',function(e){
+    var el=e.target; if(!el.dataset||el.dataset.idx===undefined) return; var idx=parseInt(el.dataset.idx,10); var field=el.dataset.field; if(!services[idx]) return;
+    if(field==='name') services[idx].name=el.value; else if(field==='cat') services[idx].cat=el.value; else services[idx][field]=parseFloat(el.value)||0;
+    saveServices();
+    if(field==='cat'){ var cc=catColor(el.value); el.style.background=cc.bg; el.style.color=cc.fg; el.style.borderColor=cc.border; }
+  });
+  servicesList.addEventListener('change',function(e){
+    var el=e.target; if(!el.dataset||el.dataset.idx===undefined) return;
+    if(el.dataset.field==='cat'){ var idx=parseInt(el.dataset.idx,10); if(services[idx]) services[idx].cat=el.value; saveServices(); var cc=catColor(el.value); el.style.background=cc.bg; el.style.color=cc.fg; el.style.borderColor=cc.border; }
+  });
+  servicesList.addEventListener('click',function(e){ if(e.target.classList.contains('del')){ var idx=parseInt(e.target.dataset.idx,10); services.splice(idx,1); saveServices(); renderServicesEditor(); updateSummaryBar(); } });
+  document.getElementById('addService').addEventListener('click',function(){ services.push({id:'s'+Date.now(),name:'Nuevo servicio',price:0,cost:0,cat:'otros'}); saveServices(); renderServicesEditor(); var rows=servicesList.querySelectorAll('.service-row'); var last=rows[rows.length-1]; if(last){ var inp=last.querySelector('input'); if(inp){ inp.focus(); inp.select(); } } });
+
+  function parseConfig(text){ var out={}; var re=/(\w+)\s*:\s*["']([^"']+)["']/g; var m; while((m=re.exec(text))!==null){ out[m[1]]=m[2]; } return out; }
+  function loadFirebaseScripts(){
+    return new Promise(function(resolve,reject){
+      if(window.firebase&&window.firebase.database) return resolve();
+      var s1=document.createElement('script');
+      s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+      s1.onload=function(){
+        var s2=document.createElement('script');
+        s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+        s2.onload=resolve; s2.onerror=reject;
+        document.head.appendChild(s2);
+      };
+      s1.onerror=reject;
+      document.head.appendChild(s1);
+    });
+  }
+  async function pushPending(){
+    if(!fbRef) return;
+    var keys=Object.keys(pending);
+    for(var i=0;i<keys.length;i++){
+      var key=keys[i]; var p=key.split('|'); var val=pending[key];
+      try{
+        if(val===null) await fbRef.child(p[0]).child(p[1]).remove();
+        else await fbRef.child(p[0]).child(p[1]).set(val);
+        delete pending[key]; persistPending();
+      }catch(_){ return; }
+    }
+  }
+  async function connectToFirebase(cfg){
+    await loadFirebaseScripts();
+    try{ if(window.firebase.apps&&window.firebase.apps.length) await window.firebase.app().delete(); }catch(_){}
+    window.firebase.initializeApp(cfg);
+    fbRef=window.firebase.database().ref('atelier/agenda');
+    var snap=await fbRef.once('value');
+    var remote=snap.val()||{};
+    var remoteCount=0;
+    Object.keys(remote).forEach(function(d){ if(remote[d]) remoteCount+=Object.keys(remote[d]).length; });
+    if(remoteCount>0){
+      var merged=JSON.parse(JSON.stringify(remote));
+      for(var key in pending){
+        var pp=key.split('|');
+        if(pending[key]){ if(!merged[pp[0]]) merged[pp[0]]={}; merged[pp[0]][pp[1]]=pending[key]; }
+        else if(merged[pp[0]]){ delete merged[pp[0]][pp[1]]; if(!Object.keys(merged[pp[0]]).length) delete merged[pp[0]]; }
+      }
+      data=merged; persistLocal(); render();
+    } else {
+      var localCount=0;
+      Object.keys(data).forEach(function(d){ localCount+=Object.keys(data[d]||{}).length; });
+      if(localCount>0) await fbRef.set(data);
+    }
+    fbRef.on('value',function(s){
+      var v=s.val()||{};
+      var merged=JSON.parse(JSON.stringify(v));
+      for(var key in pending){
+        var pp=key.split('|');
+        if(pending[key]){ if(!merged[pp[0]]) merged[pp[0]]={}; merged[pp[0]][pp[1]]=pending[key]; }
+        else if(merged[pp[0]]){ delete merged[pp[0]][pp[1]]; if(!Object.keys(merged[pp[0]]).length) delete merged[pp[0]]; }
+      }
+      data=merged; persistLocal(); render();
+    },function(){ fbConnected=false; });
+    fbConnected=true;
+    pushPending();
+    document.getElementById('openSetup').style.opacity = '0.5';
+  }
+  
+  document.getElementById('openSetup').addEventListener('click',function(){ setupEl.hidden=false; configInput.focus(); });
+  document.getElementById('cancelSetup').addEventListener('click',function(){ setupEl.hidden=true; setupErr.textContent=''; configInput.value=''; });
+  document.getElementById('doConnect').addEventListener('click',async function(){
+    setupErr.textContent=''; var text=configInput.value.trim();
+    if(!text){ setupErr.textContent='Pega el bloque de configuración.'; return; }
+    var cfg=parseConfig(text); var req=['apiKey','databaseURL','projectId'];
+    for(var i=0;i<req.length;i++){ if(!cfg[req[i]]){ setupErr.textContent='Falta «'+req[i]+'».'; return; } }
+    try{ 
+      setupErr.textContent='Conectando…'; 
+      await connectToFirebase(cfg); 
+      localStorage.setItem(KEY_CFG,JSON.stringify(cfg)); 
+      setupEl.hidden=true; configInput.value=''; setupErr.textContent=''; 
+      noticeEl.textContent='Conectado. Los cambios se guardan solos.'; noticeEl.hidden=false; setTimeout(function(){ noticeEl.hidden=true; },4000); 
+    }
+    catch(e){ setupErr.textContent='No se pudo conectar: '+(e.message||e); }
+  });
+  
+  (async function(){ 
+    try{ var cfgText=localStorage.getItem(KEY_CFG); if(cfgText){ await connectToFirebase(JSON.parse(cfgText)); } }catch(_){} 
+    setInterval(pushPending,15000); 
+    window.addEventListener('online',pushPending); 
+  })();
+
+  // --- FIN FIREBASE ---
+
+  var C_DFT={name:'Madrid',lat:40.4168,lon:-3.7038};
+  var ciudad = (function(){ 
+    try{ 
+      var c=JSON.parse(localStorage.getItem(KEY_CITY)); 
+      if(c&&typeof c.lat==='number') return c; 
+    }catch(_){} 
+    return {name:C_DFT.name,lat:C_DFT.lat,lon:C_DFT.lon}; 
+  })();
+  
+  function guardarCiudad(c){ 
+    ciudad=c; 
+    try{ localStorage.setItem(KEY_CITY,JSON.stringify(c)); }catch(_){} 
+  }
+
+  // AUTODETECCIÓN DE CIUDAD (por IP)
+  async function autoDetectarCiudad(){
+    // Si ya se ha guardado una ciudad manualmente, no hacemos nada
+    if (localStorage.getItem(KEY_CITY_AUTO) === 'done') return;
+    try {
+      var r = await fetch('https://ipwho.is/');
+      var j = await r.json();
+      if (j && j.success && j.city && j.latitude && j.longitude) {
+        guardarCiudad({ name: j.city, lat: j.latitude, lon: j.longitude });
+        localStorage.setItem(KEY_CITY_AUTO, 'done');
+        pintarEstado();
+        pedirTiempo();
+      }
+    } catch(_) {}
+  }
+
+  var WCODE={0:'despejado',1:'poco nuboso',2:'algo nuboso',3:'nublado',45:'niebla',48:'niebla helada',51:'llovizna',53:'llovizna',55:'llovizna',56:'llovizna helada',57:'llovizna helada',61:'lluvia',63:'lluvia',65:'lluvia fuerte',66:'lluvia helada',67:'lluvia helada',71:'nieve',73:'nieve',75:'nieve fuerte',77:'aguanieve',80:'chubascos',81:'chubascos',82:'chubascos fuertes',85:'chubascos de nieve',86:'chubascos de nieve',95:'tormenta',96:'tormenta',99:'tormenta'};
+  var WSIMB={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌦',56:'🌦',57:'🌦',61:'🌧',63:'🌧',65:'🌧',66:'🌧',67:'🌧',71:'🌨',73:'🌨',75:'🌨',77:'❄️',80:'🌦',81:'🌧',82:'🌧',85:'🌨',86:'🌨',95:'⛈',96:'⛈',99:'⛈'};
+  var cacheWx=(function(){ try{ return JSON.parse(localStorage.getItem(KEY_WX))||null; }catch(_){ return null; } })();
+  var clockSpan,weatherSpan,locSpan;
+  function pintarTiempo(){ if(!weatherSpan) return; if(!cacheWx){ weatherSpan.textContent='—'; return; } weatherSpan.textContent=(WSIMB[cacheWx.code]||'')+' '+Math.round(cacheWx.temp)+'°'; weatherSpan.title=WCODE[cacheWx.code]||''; }
+  function pedirTiempo(){ fetch('https://api.open-meteo.com/v1/forecast?latitude='+ciudad.lat+'&longitude='+ciudad.lon+'&current=temperature_2m,weather_code&timezone=Europe%2FMadrid',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){ if(!j||!j.current) return; cacheWx={t:Date.now(),temp:j.current.temperature_2m,code:j.current.weather_code}; try{localStorage.setItem(KEY_WX,JSON.stringify(cacheWx));}catch(_){} pintarTiempo(); }).catch(pintarTiempo); }
+  function pintarEstado(){
+    statusEl.innerHTML=''; clockSpan=document.createElement('span'); weatherSpan=document.createElement('span'); locSpan=document.createElement('span');
+    locSpan.className='loc'; locSpan.tabIndex=0; locSpan.setAttribute('role','button'); locSpan.textContent=ciudad.name;
+    locSpan.addEventListener('click',editarCiudad);
+    var d1=document.createElement('span'); d1.className='dot'; d1.textContent='·'; var d2=document.createElement('span'); d2.className='dot'; d2.textContent='·';
+    statusEl.appendChild(clockSpan); statusEl.appendChild(d1); statusEl.appendChild(weatherSpan); statusEl.appendChild(d2); statusEl.appendChild(locSpan);
+    tickClock(); pintarTiempo();
+  }
+  function tickClock(){ if(!clockSpan) return; var n=new Date(); clockSpan.textContent=pad(n.getHours())+':'+pad(n.getMinutes()); }
+  function editarCiudad(){
+    if(statusEl.querySelector('.edit')) return;
+    var input=document.createElement('input'); input.type='text'; input.className='edit'; input.value=ciudad.name; input.autocomplete='off'; input.spellcheck=false;
+    locSpan.replaceWith(input); setTimeout(function(){input.focus();input.select();},0);
+    var hecho=false;
+    function confirmar(){
+      if(hecho) return; hecho=true; var q=input.value.trim();
+      if(!q||q.toLowerCase()===ciudad.name.toLowerCase()){ pintarEstado(); return; }
+      input.disabled=true; input.value='Buscando…';
+      fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=1&language=es&format=json').then(function(r){return r.json();}).then(function(j){
+        if(!j.results||!j.results.length){ input.value='No encontrada'; setTimeout(function(){hecho=false;pintarEstado();},900); return; }
+        var g=j.results[0]; guardarCiudad({name:g.name,lat:g.latitude,lon:g.longitude}); 
+        localStorage.setItem(KEY_CITY_AUTO, 'done'); // Evitar que se sobrescriba sola si la edita a mano
+        cacheWx=null; try{localStorage.removeItem(KEY_WX);}catch(_){}
+        pintarEstado(); pedirTiempo();
+      }).catch(function(){ input.value='Sin internet'; setTimeout(function(){hecho=false;pintarEstado();},900); });
+    }
+    input.addEventListener('blur',confirmar);
+    input.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();input.blur();} else if(e.key==='Escape'){e.preventDefault();hecho=true;pintarEstado();} });
+  }
+
+  function syncBarHeight(){ document.documentElement.style.setProperty('--bar-h',bar.offsetHeight+'px'); }
+  window.addEventListener('resize',syncBarHeight); window.addEventListener('orientationchange',syncBarHeight);
+
+  pintarEstado(); syncBarHeight(); render();
+  autoDetectarCiudad(); // Aquí se ejecuta la autodetección
+  
+  setInterval(tickClock,15000); setInterval(syncToToday, 30000);
+  window.addEventListener('focus', syncToToday);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) syncToToday(); });
+  pedirTiempo(); setInterval(pedirTiempo,30*60*1000);
+
+})();
+</script>
+</body>
+</html>
