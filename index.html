@@ -37,8 +37,6 @@
   .date{margin-top:2px;font-size:16px;color:var(--ink-muted);text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .status{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;font-size:18px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;}
   .status .dot{opacity:.5}
-  .status .loc{text-decoration:underline dotted;text-underline-offset:4px;cursor:pointer;color:var(--ink);}
-  .status .edit{font-family:var(--font);font-size:18px;color:var(--ink);background:var(--violet-soft);border:none;border-radius:8px;padding:4px 10px;outline:2px solid var(--violet);min-width:150px;}
   .hoy-row{display:flex;justify-content:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:var(--bar-h,120px);z-index:9;}
   .hoy,.precios{background:var(--violet);color:#fff;border:none;border-radius:999px;padding:10px 22px;font-size:17px;font-weight:600;cursor:pointer;font-family:var(--font);}
   .precios{background:var(--paper-2);color:var(--ink);border:1px solid var(--line);}
@@ -66,7 +64,7 @@
   .slot .cost-txt{color:var(--ink-muted);font-size:14px;}
   .slot .pay-btn{font-family:var(--font);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;margin-left:auto;border:2px solid;background:#fff;color:var(--ink);}
   .slot .pay-btn:focus-visible{outline:3px solid var(--violet);outline-offset:2px;}
-  .slot .editing{width:100%;font-family:var(--font);font-size:22px;color:var(--ink);background:transparent;border:none;outline:none;padding:4px 0;border-bottom:3px solid var(--violet);}
+  .slot .service-name{display:block;color:var(--ink-muted);font-size:14px}
   .slot.now{background:var(--violet-soft)}
   .slot.now .time{color:var(--violet);font-weight:700}
   .slot.now .time::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--violet);margin-right:8px;vertical-align:middle;}
@@ -75,13 +73,44 @@
     .slot .time{font-size:20px;padding:20px 16px 14px 24px}
     .slot .body{padding:12px 24px 12px 10px;}
     .slot .text{font-size:24px;}
-    .slot .editing{font-size:24px;}
     .slot .price-btn .p{font-size:19px;}
     .slot .price-btn .c{font-size:11px;}
     .slot .pay-btn{font-size:15px;padding:9px 16px;}
     .slot .cost-txt{font-size:15px;}
     .dow{font-size:28px}.date{font-size:17px}.status{font-size:19px}
   }
+  html,body{background:#f1ebf4}
+  .app{box-shadow:0 0 48px #2a223012}
+  .bar{background:#fbf8fc;border-bottom-color:#e9dfee}
+  .agenda-brand{color:var(--ink-muted);font-size:12px;font-weight:700;letter-spacing:.075em}
+  .chev{width:48px;height:48px;border-radius:15px;background:#fff;border-color:#e9dfee}
+  .hoy-row{background:#fbf8fc}
+  .hoy,.precios{min-height:44px}
+  .status{gap:0 8px}
+  .status .loc{max-width:100%;min-height:44px;padding:0 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit;font-weight:600;color:#674477;background:none;border:0;border-radius:8px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:4px}
+  .status .loc:focus-visible,.agenda-dialog button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+  .slot .content::before{content:'+';display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--violet-soft);color:#674477;font-size:19px;line-height:1}
+  @media(hover:hover){.slot .content:hover,.chev:hover{background:var(--violet-soft);border-radius:10px}}
+  .agenda-dialog{width:min(460px,calc(100% - 28px));max-height:calc(100% - 28px);padding:24px;border:1px solid #e9dfee;border-radius:20px;background:var(--paper);color:var(--ink);font-size:16px;box-shadow:0 16px 48px #2a22302e}
+  .agenda-dialog::backdrop{background:#2a223088}
+  .agenda-dialog h2{margin:0 0 12px;font-size:23px}
+  .agenda-dialog p{margin:12px 0;color:var(--ink-muted)}
+  .agenda-dialog form{margin-top:18px}
+  .agenda-dialog label{display:block;margin-bottom:4px;font-weight:600}
+  .agenda-dialog .btns{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+  .agenda-dialog .btn{min-height:44px}
+  .agenda-dialog button:disabled{opacity:.58;cursor:default}
+  #locationMessage:empty{display:none}
+  .agenda-dialog .btns{flex-wrap:wrap}
+  .agenda-dialog .btn{padding:9px 14px;border:1px solid transparent;border-radius:10px;font:inherit;font-weight:650;cursor:pointer}
+  .agenda-dialog .btn-primary{background:#674477;color:#fff}
+  .agenda-dialog .btn-secondary{border-color:var(--line);background:var(--paper-2);color:var(--ink)}
+  .agenda-dialog input,.agenda-dialog select{width:100%;min-height:46px;padding:9px 11px;border:1px solid #cbb9d2;border-radius:10px;font:inherit;color:var(--ink);background:#fff}
+  .agenda-dialog .field{margin:14px 0}
+  .appointment-total{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:12px;border-radius:12px;background:var(--violet-soft)}
+  .appointment-total output{font-weight:750;font-size:21px}
+  .appointment-total small{color:var(--ink-muted)}
+  .agenda-dialog .delete-cita{margin-right:auto;background:transparent;color:var(--red)}
   .day-summary{position:sticky;bottom:0;background:var(--paper-2);border-top:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;}
   .day-summary[hidden]{display:none}
   .day-summary .txt{flex:1 1 auto;min-width:0;}
@@ -121,14 +150,6 @@
   .modal .btn{flex:1 1 auto;min-height:54px;border:none;border-radius:12px;font-size:18px;font-family:var(--font);cursor:pointer;padding:12px 18px;}
   .modal .btn-primary{background:var(--violet);color:#fff;}
   .modal .btn-secondary{background:var(--paper-2);color:var(--ink);border:1px solid var(--line);}
-  .pay-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
-  .pay-options .pay-option{padding:16px;border-radius:12px;border:2px solid;background:#fff;font-family:var(--font);font-size:17px;cursor:pointer;text-align:center;font-weight:700;}
-  .pay-options .pay-option:focus-visible{outline:3px solid var(--violet);outline-offset:2px;}
-  .pay-options .pay-option[data-method="efectivo"]{background:#e8f5e9;color:#1b5e20;border-color:#a5d6a7;}
-  .pay-options .pay-option[data-method="tarjeta"]{background:#e3f2fd;color:#0d47a1;border-color:#90caf9;}
-  .pay-options .pay-option[data-method="bizum"]{background:#f3e5f5;color:#4a148c;border-color:#ce93d8;}
-  .pay-options .pay-option[data-method="transferencia"]{background:#eceff1;color:#37474f;border-color:#b0bec5;}
-  .pay-options .pay-option.pending{grid-column:1/-1;background:#fff3e0;color:#bf360c;border-color:#ffcc80;}
   .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin:8px 0 16px;}
   .legend .lg{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-weight:600;}
   .legend .lg .dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;}
@@ -148,6 +169,7 @@
   <header class="bar" id="bar">
     <button class="chev" id="prev" aria-label="Día anterior">‹</button>
     <div class="titles">
+      <div class="agenda-brand">MI PELUQUERÍA</div>
       <div class="dow" id="dow"></div>
       <div class="date" id="datestr"></div>
       <div class="status" id="status"></div>
@@ -172,11 +194,51 @@
 
 <button class="sync-btn" id="openSetup" title="Sincronizar dispositivos">☁️</button>
 
+<dialog class="agenda-dialog" id="locationDialog" aria-labelledby="locationTitle">
+  <h2 id="locationTitle">Ubicación</h2>
+  <button class="btn btn-primary" id="useLocation" type="button">Usar mi ubicación</button>
+  <p>El navegador te pedirá permiso la primera vez. Se consulta la zona aproximada para mostrar tu localidad y el tiempo.</p>
+  <form id="locationForm">
+    <label for="locationInput">O escribe tu localidad</label>
+    <input id="locationInput" type="text" autocomplete="off" placeholder="Nombre de la localidad" required>
+    <p id="locationMessage" role="status"></p>
+    <div class="btns">
+      <button class="btn btn-secondary" id="closeLocation" type="button">Cerrar</button>
+      <button class="btn btn-primary" id="saveLocation" type="submit">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="agenda-dialog" id="appointmentDialog" aria-labelledby="appointmentTitle">
+  <h2 id="appointmentTitle">Cita</h2>
+  <p id="appointmentDate"></p>
+  <form id="appointmentForm">
+    <div class="field">
+      <label for="appointmentClient">Nombre de la clienta o del cliente</label>
+      <input id="appointmentClient" type="text" autocomplete="off" autofocus required>
+    </div>
+    <div class="field">
+      <label for="appointmentService">Servicio</label>
+      <select id="appointmentService"></select>
+    </div>
+    <div class="appointment-total">
+      <div>Total <output id="appointmentTotal" aria-live="polite"></output></div>
+      <small id="appointmentPayment"></small>
+    </div>
+    <p id="appointmentNotice" hidden>El cambio de servicio dejará la cita pendiente de cobro.</p>
+    <div class="btns">
+      <button class="btn delete-cita" type="button" id="deleteAppointment">Borrar cita</button>
+      <button class="btn btn-secondary" type="button" id="cancelAppointment">Cancelar</button>
+      <button class="btn btn-primary" type="submit">Guardar cita</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="modal" id="summaryModal" hidden>
   <div class="card">
     <h2 id="summaryTitle">Resumen del día</h2>
     <div id="summaryBody"></div>
-    <h3>Buscar clienta</h3>
+    <h3>Buscar cliente o clienta</h3>
     <input type="text" id="searchClient" placeholder="Escribe un nombre…" autocomplete="off">
     <div id="searchResults"></div>
     <div class="btns">
@@ -203,22 +265,25 @@
   </div>
 </div>
 
-<div class="modal" id="payModal" hidden>
-  <div class="card">
-    <h2>¿Cómo ha pagado?</h2>
-    <p class="sub" id="paySub"></p>
-    <div class="pay-options">
-      <button class="pay-option" type="button" data-method="efectivo">Efectivo</button>
-      <button class="pay-option" type="button" data-method="tarjeta">Tarjeta</button>
-      <button class="pay-option" type="button" data-method="bizum">Bizum</button>
-      <button class="pay-option" type="button" data-method="transferencia">Transferencia</button>
-      <button class="pay-option pending" type="button" data-method="">Pendiente (sin cobrar)</button>
-    </div>
+<dialog class="agenda-dialog" id="payModal" aria-labelledby="payTitle">
+  <h2 id="payTitle">Confirmar cobro</h2>
+  <p id="paySub"></p>
+  <form id="payForm">
+    <label for="payMethod">Forma de pago</label>
+    <select id="payMethod" required>
+      <option value="">Elige cómo se ha pagado</option>
+      <option value="efectivo">Efectivo</option>
+      <option value="tarjeta">Tarjeta</option>
+      <option value="bizum">Bizum</option>
+      <option value="transferencia">Transferencia</option>
+      <option value="pendiente" id="pendingPaymentOption" hidden>Volver a pendiente</option>
+    </select>
     <div class="btns">
-      <button class="btn btn-secondary" id="cancelPay">Cancelar</button>
+      <button class="btn btn-secondary" type="button" id="cancelPay">Cancelar</button>
+      <button class="btn btn-primary" type="submit" id="confirmPay">Confirmar cobro</button>
     </div>
-  </div>
-</div>
+  </form>
+</dialog>
 
 <div class="modal" id="servicesModal" hidden>
   <div class="card">
@@ -274,7 +339,7 @@
 
   var KEY_MAIN='atelier.agenda.v1', KEY_CITY='atelier.ciudad.v1', KEY_WX='atelier.tiempo.v1',
       KEY_CFG='atelier.firebase.v1', KEY_PENDING='atelier.pending.v1', KEY_HOURS='atelier.hours.v1',
-      KEY_SERVICES='atelier.services.v1', KEY_CITY_AUTO='atelier.city.auto';
+      KEY_SERVICES='atelier.services.v1';
   var BASE_START=8, BASE_END=21;
   var DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   var MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -369,7 +434,31 @@
   function normalizeAppointment(v){
     if(!v) return null;
     if(typeof v==='string') return {text:v,price:null,cost:null,paid:false,method:null};
-    return { text:String(v.text||''), price:(typeof v.price==='number')?v.price:null, cost:(typeof v.cost==='number')?v.cost:null, paid:!!v.paid, method:v.method||null };
+    var appointment={text:String(v.text||''),price:Number.isFinite(v.price)?v.price:null,cost:Number.isFinite(v.cost)?v.cost:null,paid:!!v.paid,method:v.method||null};
+    if(appointment.paid&&Number.isFinite(v.paidAt)) appointment.paidAt=v.paidAt;
+    if(v.service?.id&&v.service.name){
+      appointment.service=v.service;
+      appointment.client=String(v.client||'');
+    }
+    return appointment;
+  }
+
+  function appointmentAmounts(appointment){
+    var matched=appointment.service?[appointment.service]:matchServices(appointment.text);
+    var totals=sumServices(matched);
+    var explicitPrice=appointment.service?null:extractExplicitPrice(appointment.text);
+    return {
+      services:matched,
+      price:appointment.price??explicitPrice??totals.revenue,
+      cost:appointment.cost??totals.cost
+    };
+  }
+
+  function paymentLabel(appointment){
+    if(!appointment.paid) return 'Pendiente de cobro';
+    if(!appointment.paidAt) return 'Cobrado';
+    var confirmed=new Date(appointment.paidAt);
+    return 'Cobrado · '+confirmed.toLocaleString('es-ES',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
   }
 
   var hoursRange = (function(){
@@ -436,15 +525,11 @@
     Object.keys(d).sort().forEach(function(t){
       var a=normalizeAppointment(d[t]); if(!a||!a.text) return;
       count++;
-      var matched=matchServices(a.text);
-      var sv=sumServices(matched);
-      var ex=extractExplicitPrice(a.text);
-      var autoP=ex!==null?ex:sv.revenue;
-      var price=a.price!=null?a.price:autoP;
-      var c=a.cost!=null?a.cost:sv.cost;
+      var amounts=appointmentAmounts(a);
+      var price=amounts.price,c=amounts.cost;
       billed+=price; cost+=c;
       if(a.paid) paid+=price;
-      items.push({time:t,appt:a,services:matched,price:price,cost:c,paid:a.paid,method:a.method,cat:primaryCat(matched)});
+      items.push({time:t,appt:a,services:amounts.services,price:price,cost:c,paid:a.paid,method:a.method,cat:primaryCat(amounts.services)});
     });
     return {items:items,count:count,billed:billed,paid:paid,pending:billed-paid,cost:cost,profit:billed-cost};
   }
@@ -486,18 +571,21 @@
 
       var appt=normalizeAppointment(day[t]);
       if(!appt||!appt.text){
-        var cEl=document.createElement('div'); cEl.className='content'; cEl.tabIndex=0; cEl.setAttribute('role','button'); cEl.setAttribute('aria-label','Hueco libre a las '+t+'. Toca para escribir.'); bodyEl.appendChild(cEl);
+        var cEl=document.createElement('div'); cEl.className='content'; cEl.tabIndex=0; cEl.setAttribute('role','button'); cEl.setAttribute('aria-label','Añadir cita a las '+t); bodyEl.appendChild(cEl);
       } else {
-        var matched=matchServices(appt.text);
-        var svcSum=sumServices(matched);
-        var ex=extractExplicitPrice(appt.text);
-        var autoP=ex!==null?ex:svcSum.revenue;
-        var price=appt.price!=null?appt.price:autoP;
-        var cost=appt.cost!=null?appt.cost:svcSum.cost;
-        var catKey=primaryCat(matched);
+        var amounts=appointmentAmounts(appt);
+        var price=amounts.price,cost=amounts.cost;
+        var catKey=primaryCat(amounts.services);
         var cc=catColor(catKey);
 
-        var textEl=document.createElement('div'); textEl.className='text'; textEl.tabIndex=0; textEl.setAttribute('role','button'); textEl.textContent=appt.text; textEl.setAttribute('aria-label',appt.text+'. Toca para editar el texto.'); bodyEl.appendChild(textEl);
+        var textEl=document.createElement('div'); textEl.className='text'; textEl.tabIndex=0; textEl.setAttribute('role','button'); textEl.textContent=appt.client||appt.text; textEl.setAttribute('aria-label','Editar cita: '+appt.text);
+        if(appt.service&&appt.client){
+          var serviceName=document.createElement('span');
+          serviceName.className='service-name';
+          serviceName.textContent=appt.service.name;
+          textEl.appendChild(serviceName);
+        }
+        bodyEl.appendChild(textEl);
         var meta=document.createElement('div'); meta.className='meta';
 
         var priceBtn=document.createElement('button'); priceBtn.type='button'; priceBtn.className='price-btn'; priceBtn.style.background=cc.bg; priceBtn.style.color=cc.fg; priceBtn.style.borderColor=cc.border;
@@ -510,7 +598,7 @@
         if(appt.paid){ payKey = appt.method && PAY_METHODS[appt.method] ? appt.method : 'efectivo'; payLabel = '✓ '+(appt.method ? PAY_METHODS[appt.method].label : 'Cobrado'); }
         else { payKey = 'pendiente'; payLabel = 'Pendiente'; }
         var pc=payColor(payKey); payBtn.style.background=pc.bg; payBtn.style.color=pc.fg; payBtn.style.borderColor=pc.border; payBtn.textContent=payLabel;
-        payBtn.setAttribute('aria-label', appt.paid ? 'Cobrado con '+(appt.method||'método no indicado')+'. Toca para cambiar.' : 'Pendiente de cobro. Toca para marcar como cobrado.'); meta.appendChild(payBtn);
+        payBtn.setAttribute('aria-label', appt.paid ? 'Editar el cobro de '+appt.text : 'Confirmar cobro de '+appt.text); meta.appendChild(payBtn);
 
         bodyEl.appendChild(meta);
       }
@@ -521,76 +609,172 @@
     if(firstLoad){ firstLoad=false; if(iso===hoyIso) setTimeout(scrollToNow,80); }
   }
 
-  function startTextEdit(row){
-    if(row.querySelector('.editing')) return;
-    var time=row.dataset.time; var iso=isoDate(currentDate);
-    var existing=normalizeAppointment((data[iso]||{})[time]); var cur=existing?existing.text:'';
-    var targetEl=row.querySelector('.text')||row.querySelector('.content'); if(!targetEl) return;
-    var metaEl=row.querySelector('.meta'); if(metaEl) metaEl.style.display='none';
+  var appointmentDialog=document.getElementById('appointmentDialog'),
+      appointmentForm=document.getElementById('appointmentForm'),
+      appointmentClient=document.getElementById('appointmentClient'),
+      appointmentService=document.getElementById('appointmentService'),
+      appointmentTotal=document.getElementById('appointmentTotal'),
+      appointmentPayment=document.getElementById('appointmentPayment'),
+      appointmentNotice=document.getElementById('appointmentNotice'),
+      deleteAppointment=document.getElementById('deleteAppointment');
+  var appointmentEdit=null;
 
-    var input=document.createElement('input'); input.type='text'; input.className='editing'; input.value=cur; input.autocomplete='off'; input.spellcheck=false; input.setAttribute('aria-label','Cita de las '+time);
-    targetEl.replaceWith(input); setTimeout(function(){input.focus();input.select();},0);
-
-    var done=false;
-    function commit(){
-      if(done) return; done=true;
-      var val=input.value.replace(/\s+/g,' ').trim();
-      if(val){
-        if(!data[iso]) data[iso]={};
-        if(!existing){ var sv=sumServices(matchServices(val)); data[iso][time]={text:val,price:sv.revenue,cost:sv.cost,paid:false,method:null}; }
-        else { existing.text=val; data[iso][time]=existing; }
-      } else if(data[iso]){ delete data[iso][time]; if(!Object.keys(data[iso]).length) delete data[iso]; }
-      persistLocal(); pending[iso+'|'+time]=data[iso]&&data[iso][time]?data[iso][time]:null; persistPending(); pushPending(); render();
+  function saveAppointment(iso,time,appointment){
+    if(appointment){
+      if(!data[iso]) data[iso]={};
+      data[iso][time]=appointment;
+    }else if(data[iso]){
+      delete data[iso][time];
+      if(!Object.keys(data[iso]).length) delete data[iso];
     }
-    input.addEventListener('blur',commit);
-    input.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();input.blur();} else if(e.key==='Escape'){e.preventDefault();done=true;render();} });
+    persistLocal();
+    pending[iso+'|'+time]=appointment;
+    persistPending();
+    pushPending();
+    render();
   }
+
+  function buildAppointment(text,service,previous){
+    var serviceChanged=(previous?.service?.id||'')!==(service?.id||'');
+    var result={text:text,price:null,cost:null,paid:false,method:null};
+    if(previous&&!serviceChanged){
+      result.price=previous.price;
+      result.cost=previous.cost;
+      result.paid=previous.paid;
+      result.method=previous.method;
+      if(previous.paidAt) result.paidAt=previous.paidAt;
+    }
+    if(service){
+      var bookedService=serviceChanged?service:previous.service;
+      result.client=text;
+      result.service={id:bookedService.id,name:bookedService.name,cat:bookedService.cat||inferCat(bookedService.name),price:Number(bookedService.price)||0,cost:Number(bookedService.cost)||0};
+      result.text=text+' · '+result.service.name;
+    }
+    return result;
+  }
+
+  function selectedService(previous){
+    if(!appointmentService.value) return null;
+    if(previous?.service?.id===appointmentService.value) return previous.service;
+    return services.find(function(service){return service.id===appointmentService.value;})||null;
+  }
+
+  function refreshAppointmentTotal(){
+    if(!appointmentEdit) return;
+    var appt=appointmentEdit.previous;
+    var draft=buildAppointment(appointmentClient.value,selectedService(appt),appt);
+    appointmentTotal.textContent=fmtEuro(appointmentAmounts(draft).price);
+    appointmentPayment.textContent=paymentLabel(draft);
+    appointmentNotice.hidden=!(appt?.paid&&!draft.paid);
+  }
+
+  function openAppointment(time){
+    if(appointmentDialog.open) return;
+    var iso=isoDate(currentDate);
+    var previous=normalizeAppointment((data[iso]||{})[time]);
+    appointmentEdit={iso:iso,time:time,previous:previous};
+    document.getElementById('appointmentTitle').textContent=previous?'Editar cita':'Nueva cita';
+    document.getElementById('appointmentDate').textContent=dowEl.textContent+' · '+dateEl.textContent+' · '+time;
+    appointmentClient.value=previous?.client||previous?.text||'';
+    appointmentService.replaceChildren(new Option('Sin seleccionar',''));
+    services.forEach(function(service){
+      if(!service.name.trim()) return;
+      var option=previous?.service?.id===service.id?previous.service:service;
+      appointmentService.add(new Option(option.name+' · '+fmtEuro(option.price),option.id));
+    });
+    if(previous?.service&&!services.some(function(service){return service.id===previous.service.id&&service.name.trim();})){
+      appointmentService.add(new Option(previous.service.name+' · '+fmtEuro(previous.service.price),previous.service.id));
+    }
+    appointmentService.value=previous?.service?.id||'';
+    deleteAppointment.hidden=!previous;
+    refreshAppointmentTotal();
+    appointmentDialog.showModal();
+  }
+
+  appointmentService.addEventListener('change',refreshAppointmentTotal);
+  appointmentClient.addEventListener('input',refreshAppointmentTotal);
+  appointmentForm.addEventListener('submit',function(event){
+    event.preventDefault();
+    if(!appointmentEdit) return;
+    var text=appointmentClient.value.replace(/\s+/g,' ').trim();
+    if(!text){appointmentClient.focus();return;}
+    var iso=appointmentEdit.iso,time=appointmentEdit.time;
+    var previous=normalizeAppointment((data[iso]||{})[time]);
+    var draft=buildAppointment(text,selectedService(appointmentEdit.previous),previous);
+    var amounts=appointmentAmounts(draft);
+    draft.price=amounts.price;
+    draft.cost=amounts.cost;
+    appointmentDialog.close();
+    saveAppointment(iso,time,draft);
+  });
+  document.getElementById('cancelAppointment').addEventListener('click',function(){appointmentDialog.close();});
+  deleteAppointment.addEventListener('click',function(){
+    if(!appointmentEdit||!window.confirm('¿Borrar esta cita?')) return;
+    var iso=appointmentEdit.iso,time=appointmentEdit.time;
+    appointmentDialog.close();
+    saveAppointment(iso,time,null);
+  });
 
   var priceEdit={iso:null,time:null};
   function openPriceEditor(time){
     var iso=isoDate(currentDate); var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
-    var sv=sumServices(matchServices(appt.text)); var ex=extractExplicitPrice(appt.text); var autoP=ex!==null?ex:sv.revenue;
+    var amounts=appointmentAmounts(appt);
     priceEdit={iso:iso,time:time}; priceSub.textContent=appt.text;
-    priceInput.value=(appt.price!=null?appt.price:autoP); costInput.value=(appt.cost!=null?appt.cost:sv.cost);
+    priceInput.value=amounts.price; costInput.value=amounts.cost;
     priceModal.hidden=false; setTimeout(function(){priceInput.focus();priceInput.select();},0);
   }
   document.getElementById('savePrice').addEventListener('click',function(){
     var iso=priceEdit.iso,time=priceEdit.time; if(!iso||!time) return;
     var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
     var p=parseNum(priceInput.value); if(p===null) p=0; var c=parseNum(costInput.value); if(c===null) c=0;
-    appt.price=p; appt.cost=c; data[iso][time]=appt; persistLocal(); pending[iso+'|'+time]=appt; persistPending(); pushPending();
-    priceModal.hidden=true; priceEdit={iso:null,time:null}; render();
+    appt.price=p; appt.cost=c;
+    priceModal.hidden=true; priceEdit={iso:null,time:null};
+    saveAppointment(iso,time,appt);
   });
   document.getElementById('cancelPrice').addEventListener('click',function(){ priceModal.hidden=true; priceEdit={iso:null,time:null}; });
 
-  var payEdit={iso:null,time:null};
+  var payEdit=null;
+  var payMethod=document.getElementById('payMethod'),confirmPay=document.getElementById('confirmPay');
   function openPayPicker(time){
-    var iso=isoDate(currentDate); var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
-    var sv=sumServices(matchServices(appt.text)); var ex=extractExplicitPrice(appt.text); var autoP=ex!==null?ex:sv.revenue; var p=appt.price!=null?appt.price:autoP;
-    payEdit={iso:iso,time:time}; paySub.textContent=appt.text+' · '+fmtEuro(p); payModal.hidden=false;
+    var iso=isoDate(currentDate);
+    var appt=normalizeAppointment((data[iso]||{})[time]);
+    if(!appt) return;
+    payEdit={iso:iso,time:time};
+    paySub.textContent=appt.text+' · '+fmtEuro(appointmentAmounts(appt).price)+' · '+paymentLabel(appt);
+    document.getElementById('pendingPaymentOption').hidden=!appt.paid;
+    payMethod.value=appt.paid&&appt.method?appt.method:'';
+    confirmPay.textContent='Confirmar cobro';
+    payModal.showModal();
   }
-  document.querySelectorAll('#payModal [data-method]').forEach(function(btn){
-    btn.addEventListener('click',function(){
-      var iso=payEdit.iso,time=payEdit.time; if(!iso||!time) return;
-      var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
-      var m=btn.getAttribute('data-method');
-      if(m===''){ appt.paid=false; appt.method=null; } else { appt.paid=true; appt.method=m; }
-      data[iso][time]=appt; persistLocal(); pending[iso+'|'+time]=appt; persistPending(); pushPending();
-      payModal.hidden=true; payEdit={iso:null,time:null}; render();
-    });
+  payMethod.addEventListener('change',function(){
+    confirmPay.textContent=payMethod.value==='pendiente'?'Dejar pendiente':'Confirmar cobro';
   });
-  document.getElementById('cancelPay').addEventListener('click',function(){ payModal.hidden=true; payEdit={iso:null,time:null}; });
+  document.getElementById('payForm').addEventListener('submit',function(event){
+    event.preventDefault();
+    if(!payEdit||!payMethod.value) return;
+    var iso=payEdit.iso,time=payEdit.time;
+    var appt=normalizeAppointment((data[iso]||{})[time]);
+    if(appt){
+      appt.paid=payMethod.value!=='pendiente';
+      appt.method=appt.paid?payMethod.value:null;
+      if(appt.paid) appt.paidAt=appt.paidAt||Date.now();
+      else delete appt.paidAt;
+      saveAppointment(iso,time,appt);
+    }
+    payModal.close();
+  });
+  document.getElementById('cancelPay').addEventListener('click',function(){payModal.close();});
 
   slotsEl.addEventListener('click',function(e){
     var row=e.target.closest('.slot'); if(!row) return; var time=row.dataset.time;
     if(e.target.closest('.price-btn')||e.target.closest('.cost-txt')){ openPriceEditor(time); return; }
     if(e.target.closest('.pay-btn')){ openPayPicker(time); return; }
-    if(e.target.closest('.text')||e.target.closest('.content')){ startTextEdit(row); return; }
+    if(e.target.closest('.text')||e.target.closest('.content')){ openAppointment(row.dataset.time); return; }
   });
   slotsEl.addEventListener('keydown',function(e){
     if(e.key!=='Enter'&&e.key!==' ') return;
     var el=e.target;
-    if(el.classList.contains('text')||el.classList.contains('content')){ e.preventDefault(); var row=el.closest('.slot'); if(row) startTextEdit(row); }
+    if(el.classList.contains('text')||el.classList.contains('content')){ e.preventDefault(); var row=el.closest('.slot'); if(row) openAppointment(row.dataset.time); }
   });
 
   extendBefore.addEventListener('click',function(){ if(hoursRange.start>0){ hoursRange.start-=1; saveHours(); render(); scrollEl.scrollTo({top:0,behavior:'smooth'}); } });
@@ -607,8 +791,8 @@
       var html='';
       d.items.forEach(function(it){
         var cc=catColor(it.cat); var payKey = it.paid ? (it.method||'efectivo') : 'pendiente'; var pc = payColor(payKey);
-        var payLabel = it.paid ? '✓ '+(it.method ? PAY_METHODS[it.method].label : 'Cobrado') : 'Pendiente';
-        var svcNames=it.services.map(function(s){return esc(s.name);}).join(' + '); var name=clientName(it.appt.text);
+        var payLabel = it.paid ? '✓ '+(it.method ? payColor(it.method).label : 'Cobrado') : 'Pendiente';
+        var svcNames=it.services.map(function(s){return esc(s.name);}).join(' + '); var name=it.appt.client||clientName(it.appt.text);
         html+='<div class="item"><div class="head"><span class="time">'+esc(it.time)+'</span><span class="amt">'+fmtEuro(it.price)+'</span></div>';
         html+='<div class="detail">'+esc(it.appt.text)+'</div>';
         html+='<div class="detail">'+(svcNames||'—')+' · coste '+fmtEuro(it.cost)+' · beneficio '+fmtEuro(it.price-it.cost)+'</div>';
@@ -647,10 +831,9 @@
       var day=data[iso];
       Object.keys(day).sort().forEach(function(t){
         var a=normalizeAppointment(day[t]); if(!a||!a.text) return;
-        if(normalize(a.text).indexOf(normalize(name))!==-1){
-          var matched=matchServices(a.text); var sv=sumServices(matched); var ex=extractExplicitPrice(a.text);
-          var autoP=ex!==null?ex:sv.revenue; var p=a.price!=null?a.price:autoP; var c=a.cost!=null?a.cost:sv.cost;
-          results.push({iso:iso,time:t,appt:a,services:matched,price:p,cost:c,paid:a.paid,method:a.method,cat:primaryCat(matched)});
+        if(normalize(a.client||a.text).indexOf(normalize(name))!==-1){
+          var amounts=appointmentAmounts(a);
+          results.push({iso:iso,time:t,appt:a,services:amounts.services,price:amounts.price,cost:amounts.cost,paid:a.paid,method:a.method,cat:primaryCat(amounts.services)});
         }
       });
     });
@@ -661,7 +844,7 @@
       results.forEach(function(r){
         var dd=new Date(r.iso+'T12:00:00'); var fecha=dd.getDate()+'/'+pad(dd.getMonth()+1)+'/'+dd.getFullYear();
         var cc=catColor(r.cat); var payKey=r.paid?(r.method||'efectivo'):'pendiente'; var pc=payColor(payKey);
-        var payLabel=r.paid?'✓ '+(r.method?PAY_METHODS[r.method].label:'Cobrado'):'Pendiente'; var svc=r.services.map(function(s){return esc(s.name);}).join(' + ')||'—';
+        var payLabel=r.paid?'✓ '+(r.method?payColor(r.method).label:'Cobrado'):'Pendiente'; var svc=r.services.map(function(s){return esc(s.name);}).join(' + ')||'—';
         html+='<div class="item"><div class="head"><span class="time">'+fecha+' · '+esc(r.time)+'</span><span class="amt">'+fmtEuro(r.price)+'</span></div>';
         html+='<div class="detail">'+svc+' · coste '+fmtEuro(r.cost)+'</div>';
         html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">';
@@ -680,16 +863,15 @@
   summaryBody.addEventListener('click',function(e){ var btn=e.target.closest('[data-client]'); if(btn) openHistory(btn.dataset.client); });
 
   searchClient.addEventListener('input',function(){
-    var q=searchClient.value.trim(); if(!q){ searchResults.innerHTML=''; return; } var found={};
+    var q=searchClient.value.trim(); if(!q){ searchResults.innerHTML=''; return; } var found=Object.create(null);
     Object.keys(data).forEach(function(iso){
       var day=data[iso];
       Object.keys(day).forEach(function(t){
         var a=normalizeAppointment(day[t]); if(!a||!a.text) return;
-        if(normalize(a.text).indexOf(normalize(q))!==-1){
-          var n=clientName(a.text)||q; if(!found[n]) found[n]={count:0,billed:0,paid:0,cost:0};
-          var sv=sumServices(matchServices(a.text)); var ex=extractExplicitPrice(a.text); var autoP=ex!==null?ex:sv.revenue;
-          var p=a.price!=null?a.price:autoP; var c=a.cost!=null?a.cost:sv.cost;
-          found[n].count++; found[n].billed+=p; found[n].cost+=c; if(a.paid) found[n].paid+=p;
+        if(normalize(a.client||a.text).indexOf(normalize(q))!==-1){
+          var n=a.client||clientName(a.text)||q; if(!found[n]) found[n]={count:0,billed:0,paid:0,cost:0};
+          var amounts=appointmentAmounts(a);
+          found[n].count++; found[n].billed+=amounts.price; found[n].cost+=amounts.cost; if(a.paid) found[n].paid+=amounts.price;
         }
       });
     });
@@ -755,16 +937,31 @@
       document.head.appendChild(s1);
     });
   }
+  var pushingPending=false;
   async function pushPending(){
-    if(!fbRef) return;
-    var keys=Object.keys(pending);
-    for(var i=0;i<keys.length;i++){
-      var key=keys[i]; var p=key.split('|'); var val=pending[key];
-      try{
-        if(val===null) await fbRef.child(p[0]).child(p[1]).remove();
-        else await fbRef.child(p[0]).child(p[1]).set(val);
-        delete pending[key]; persistPending();
-      }catch(_){ return; }
+    if(!fbRef||pushingPending) return;
+    pushingPending=true;
+    var reference=fbRef;
+    try{
+      while(reference===fbRef){
+        var keys=Object.keys(pending);
+        if(!keys.length) break;
+        for(var i=0;i<keys.length;i++){
+          if(reference!==fbRef) return;
+          var key=keys[i],parts=key.split('|'),value=pending[key];
+          var target=reference.child(parts[0]).child(parts[1]);
+          if(value===null) await target.remove();
+          else await target.set(value);
+          if(reference===fbRef&&pending[key]===value){
+            delete pending[key];
+            persistPending();
+          }
+        }
+      }
+    }catch(_){
+      // Las escrituras pendientes se vuelven a intentar al recuperar la conexión.
+    }finally{
+      pushingPending=false;
     }
   }
   async function connectToFirebase(cfg){
@@ -829,77 +1026,193 @@
 
   // --- FIN FIREBASE ---
 
-  var C_DFT={name:'Madrid',lat:40.4168,lon:-3.7038};
-  var ciudad = (function(){ 
-    try{ 
-      var c=JSON.parse(localStorage.getItem(KEY_CITY)); 
-      if(c&&typeof c.lat==='number') return c; 
-    }catch(_){} 
-    return {name:C_DFT.name,lat:C_DFT.lat,lon:C_DFT.lon}; 
+  var ciudad=(function(){
+    try{
+      var saved=JSON.parse(localStorage.getItem(KEY_CITY));
+      if(saved&&saved.name&&Number.isFinite(saved.lat)&&Number.isFinite(saved.lon)) return saved;
+    }catch(_){}
+    return null;
   })();
-  
-  function guardarCiudad(c){ 
-    ciudad=c; 
-    try{ localStorage.setItem(KEY_CITY,JSON.stringify(c)); }catch(_){} 
-  }
-
-  // AUTODETECCIÓN DE CIUDAD (por IP)
-  async function autoDetectarCiudad(){
-    // Si ya se ha guardado una ciudad manualmente, no hacemos nada
-    if (localStorage.getItem(KEY_CITY_AUTO) === 'done') return;
-    try {
-      var r = await fetch('https://ipwho.is/');
-      var j = await r.json();
-      if (j && j.success && j.city && j.latitude && j.longitude) {
-        guardarCiudad({ name: j.city, lat: j.latitude, lon: j.longitude });
-        localStorage.setItem(KEY_CITY_AUTO, 'done');
-        pintarEstado();
-        pedirTiempo();
-      }
-    } catch(_) {}
-  }
+  var locationDialog=document.getElementById('locationDialog'),
+      useLocation=document.getElementById('useLocation'),
+      locationInput=document.getElementById('locationInput'),
+      locationMessage=document.getElementById('locationMessage'),
+      saveLocation=document.getElementById('saveLocation'),
+      locationForm=document.getElementById('locationForm');
+  var locationRequest=0;
 
   var WCODE={0:'despejado',1:'poco nuboso',2:'algo nuboso',3:'nublado',45:'niebla',48:'niebla helada',51:'llovizna',53:'llovizna',55:'llovizna',56:'llovizna helada',57:'llovizna helada',61:'lluvia',63:'lluvia',65:'lluvia fuerte',66:'lluvia helada',67:'lluvia helada',71:'nieve',73:'nieve',75:'nieve fuerte',77:'aguanieve',80:'chubascos',81:'chubascos',82:'chubascos fuertes',85:'chubascos de nieve',86:'chubascos de nieve',95:'tormenta',96:'tormenta',99:'tormenta'};
   var WSIMB={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌦',56:'🌦',57:'🌦',61:'🌧',63:'🌧',65:'🌧',66:'🌧',67:'🌧',71:'🌨',73:'🌨',75:'🌨',77:'❄️',80:'🌦',81:'🌧',82:'🌧',85:'🌨',86:'🌨',95:'⛈',96:'⛈',99:'⛈'};
-  var cacheWx=(function(){ try{ return JSON.parse(localStorage.getItem(KEY_WX))||null; }catch(_){ return null; } })();
-  var clockSpan,weatherSpan,locSpan;
-  function pintarTiempo(){ if(!weatherSpan) return; if(!cacheWx){ weatherSpan.textContent='—'; return; } weatherSpan.textContent=(WSIMB[cacheWx.code]||'')+' '+Math.round(cacheWx.temp)+'°'; weatherSpan.title=WCODE[cacheWx.code]||''; }
-  function pedirTiempo(){ fetch('https://api.open-meteo.com/v1/forecast?latitude='+ciudad.lat+'&longitude='+ciudad.lon+'&current=temperature_2m,weather_code&timezone=Europe%2FMadrid',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){ if(!j||!j.current) return; cacheWx={t:Date.now(),temp:j.current.temperature_2m,code:j.current.weather_code}; try{localStorage.setItem(KEY_WX,JSON.stringify(cacheWx));}catch(_){} pintarTiempo(); }).catch(pintarTiempo); }
+  var cacheWx=(function(){
+    try{
+      var saved=JSON.parse(localStorage.getItem(KEY_WX));
+      var sameCity=saved&&(saved.lat===ciudad?.lat&&saved.lon===ciudad?.lon||!ciudad?.mode&&saved.lat===undefined);
+      if(ciudad&&sameCity&&Date.now()-saved.t<60*60*1000&&Number.isFinite(saved.temp)) return saved;
+    }catch(_){}
+    return null;
+  })();
+  var clockSpan,weatherSpan,locButton;
+
+  async function fetchLocationJson(url){
+    var controller=new AbortController();
+    var timer=setTimeout(function(){controller.abort();},6500);
+    try{
+      var response=await fetch(url,{cache:'no-store',signal:controller.signal});
+      if(!response.ok) throw new Error('Servicio no disponible');
+      return await response.json();
+    }finally{
+      clearTimeout(timer);
+    }
+  }
+
+  function guardarCiudad(name,lat,lon,mode){
+    if(ciudad?.lat!==lat||ciudad?.lon!==lon) cacheWx=null;
+    ciudad={name:name,lat:lat,lon:lon,mode:mode,updated:Date.now()};
+    try{localStorage.setItem(KEY_CITY,JSON.stringify(ciudad));}catch(_){}
+    pintarEstado();
+    pedirTiempo();
+  }
+
+  async function ciudadDelDispositivo(){
+    var position=await new Promise(function(resolve,reject){
+      navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:false,timeout:8000,maximumAge:5*60*1000});
+    });
+    var lat=Number(position.coords.latitude.toFixed(2));
+    var lon=Number(position.coords.longitude.toFixed(2));
+    var name='Mi ubicación';
+    try{
+      var result=await fetchLocationJson('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+lat+'&longitude='+lon+'&localityLanguage=es');
+      name=result.locality||result.city||name;
+    }catch(_){}
+    return {name:name,lat:lat,lon:lon};
+  }
+
+  async function autoDetectarCiudad(){
+    // Las localidades guardadas por versiones anteriores se tratan como una selección fija.
+    if(ciudad&&(!ciudad.mode||ciudad.mode==='manual'||Date.now()-ciudad.updated<12*60*60*1000)) return;
+    var request=++locationRequest;
+    try{
+      if(ciudad?.mode==='device'){
+        if(!navigator.permissions||!navigator.geolocation) return;
+        var permission=await navigator.permissions.query({name:'geolocation'});
+        if(permission.state!=='granted'||request!==locationRequest) return;
+        var detected=await ciudadDelDispositivo();
+        if(request===locationRequest) guardarCiudad(detected.name,detected.lat,detected.lon,'device');
+        return;
+      }
+      var result=await fetchLocationJson('https://ipwho.is/?fields=success,city,latitude,longitude');
+      if(request===locationRequest&&result.success&&result.city&&Number.isFinite(result.latitude)&&Number.isFinite(result.longitude)){
+        guardarCiudad(result.city,result.latitude,result.longitude,'network');
+      }
+    }catch(_){}
+  }
+
+  function pintarTiempo(){
+    weatherSpan.hidden=!cacheWx;
+    if(!cacheWx) return;
+    weatherSpan.textContent=(WSIMB[cacheWx.code]||'')+' '+Math.round(cacheWx.temp)+'°';
+    weatherSpan.title=WCODE[cacheWx.code]||'';
+    weatherSpan.setAttribute('aria-label',Math.round(cacheWx.temp)+' grados. '+weatherSpan.title);
+  }
+
+  async function pedirTiempo(){
+    if(!ciudad) return;
+    var location=ciudad;
+    try{
+      var result=await fetchLocationJson('https://api.open-meteo.com/v1/forecast?latitude='+location.lat+'&longitude='+location.lon+'&current=temperature_2m,weather_code&timezone=auto');
+      if(ciudad!==location||!Number.isFinite(result.current?.temperature_2m)) return;
+      cacheWx={t:Date.now(),temp:result.current.temperature_2m,code:result.current.weather_code,lat:location.lat,lon:location.lon};
+      try{localStorage.setItem(KEY_WX,JSON.stringify(cacheWx));}catch(_){}
+      pintarTiempo();
+    }catch(_){}
+  }
+
   function pintarEstado(){
-    statusEl.innerHTML=''; clockSpan=document.createElement('span'); weatherSpan=document.createElement('span'); locSpan=document.createElement('span');
-    locSpan.className='loc'; locSpan.tabIndex=0; locSpan.setAttribute('role','button'); locSpan.textContent=ciudad.name;
-    locSpan.addEventListener('click',editarCiudad);
-    var d1=document.createElement('span'); d1.className='dot'; d1.textContent='·'; var d2=document.createElement('span'); d2.className='dot'; d2.textContent='·';
-    statusEl.appendChild(clockSpan); statusEl.appendChild(d1); statusEl.appendChild(weatherSpan); statusEl.appendChild(d2); statusEl.appendChild(locSpan);
+    locButton.textContent=ciudad?.name||'Elegir ubicación';
+    locButton.title=ciudad?.mode==='network'?'Ubicación aproximada. Toca para cambiar':'Cambiar ubicación';
     tickClock(); pintarTiempo();
   }
   function tickClock(){ if(!clockSpan) return; var n=new Date(); clockSpan.textContent=pad(n.getHours())+':'+pad(n.getMinutes()); }
-  function editarCiudad(){
-    if(statusEl.querySelector('.edit')) return;
-    var input=document.createElement('input'); input.type='text'; input.className='edit'; input.value=ciudad.name; input.autocomplete='off'; input.spellcheck=false;
-    locSpan.replaceWith(input); setTimeout(function(){input.focus();input.select();},0);
-    var hecho=false;
-    function confirmar(){
-      if(hecho) return; hecho=true; var q=input.value.trim();
-      if(!q||q.toLowerCase()===ciudad.name.toLowerCase()){ pintarEstado(); return; }
-      input.disabled=true; input.value='Buscando…';
-      fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=1&language=es&format=json').then(function(r){return r.json();}).then(function(j){
-        if(!j.results||!j.results.length){ input.value='No encontrada'; setTimeout(function(){hecho=false;pintarEstado();},900); return; }
-        var g=j.results[0]; guardarCiudad({name:g.name,lat:g.latitude,lon:g.longitude}); 
-        localStorage.setItem(KEY_CITY_AUTO, 'done'); // Evitar que se sobrescriba sola si la edita a mano
-        cacheWx=null; try{localStorage.removeItem(KEY_WX);}catch(_){}
-        pintarEstado(); pedirTiempo();
-      }).catch(function(){ input.value='Sin internet'; setTimeout(function(){hecho=false;pintarEstado();},900); });
-    }
-    input.addEventListener('blur',confirmar);
-    input.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();input.blur();} else if(e.key==='Escape'){e.preventDefault();hecho=true;pintarEstado();} });
+
+  function locationBusy(busy){
+    useLocation.disabled=busy;
+    saveLocation.disabled=busy;
   }
+
+  function editarCiudad(){
+    locationRequest++;
+    locationInput.value=ciudad?.name==='Mi ubicación'?'':ciudad?.name||'';
+    locationMessage.textContent='';
+    locationBusy(false);
+    locationDialog.showModal();
+  }
+
+  useLocation.addEventListener('click',async function(){
+    if(!navigator.geolocation){
+      locationMessage.textContent='Este navegador no permite detectar la ubicación. Escribe tu localidad.';
+      return;
+    }
+    var request=++locationRequest;
+    locationBusy(true);
+    locationMessage.textContent='Buscando tu localidad…';
+    try{
+      var detected=await ciudadDelDispositivo();
+      if(request!==locationRequest) return;
+      guardarCiudad(detected.name,detected.lat,detected.lon,'device');
+      locationDialog.close();
+    }catch(error){
+      if(request!==locationRequest) return;
+      locationMessage.textContent=error.code===1
+        ? 'El navegador no tiene permiso para usar tu ubicación. Puedes escribir tu localidad.'
+        : 'No se ha podido localizar el dispositivo. Puedes escribir tu localidad.';
+    }finally{
+      if(request===locationRequest) locationBusy(false);
+    }
+  });
+
+  locationForm.addEventListener('submit',async function(event){
+    event.preventDefault();
+    var name=locationInput.value.trim();
+    if(!name) return;
+    var request=++locationRequest;
+    locationBusy(true);
+    locationMessage.textContent='Buscando la localidad…';
+    try{
+      if(normalize(name)===normalize(ciudad?.name)&&name!=='Mi ubicación'){
+        guardarCiudad(ciudad.name,ciudad.lat,ciudad.lon,'manual');
+      }else{
+        var result=await fetchLocationJson('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(name)+'&count=1&language=es&format=json');
+        if(request!==locationRequest) return;
+        var match=result.results?.[0];
+        if(!match){
+          locationMessage.textContent='No se ha encontrado la localidad. Revisa el nombre.';
+          return;
+        }
+        guardarCiudad(match.name,match.latitude,match.longitude,'manual');
+      }
+      locationDialog.close();
+    }catch(_){
+      if(request===locationRequest) locationMessage.textContent='No se puede consultar la localidad ahora. Inténtalo de nuevo.';
+    }finally{
+      if(request===locationRequest) locationBusy(false);
+    }
+  });
+  document.getElementById('closeLocation').addEventListener('click',function(){locationDialog.close();});
+  locationDialog.addEventListener('close',function(){locationRequest++;});
 
   function syncBarHeight(){ document.documentElement.style.setProperty('--bar-h',bar.offsetHeight+'px'); }
   window.addEventListener('resize',syncBarHeight); window.addEventListener('orientationchange',syncBarHeight);
+  if(window.ResizeObserver) new ResizeObserver(syncBarHeight).observe(bar);
 
+  clockSpan=document.createElement('span');
+  weatherSpan=document.createElement('span');
+  locButton=document.createElement('button');
+  locButton.type='button';
+  locButton.className='loc';
+  locButton.addEventListener('click',editarCiudad);
+  statusEl.append(clockSpan,weatherSpan,locButton);
   pintarEstado(); syncBarHeight(); render();
-  autoDetectarCiudad(); // Aquí se ejecuta la autodetección
+  autoDetectarCiudad();
   
   setInterval(tickClock,15000); setInterval(syncToToday, 30000);
   window.addEventListener('focus', syncToToday);
