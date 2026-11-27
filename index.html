@@ -229,7 +229,11 @@
     .service-value>span{display:block;color:var(--ink-muted);font-size:12px;margin-bottom:3px}
   }
   #searchClient{width:100%;font-family:var(--font);font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
-  .sync-btn{position:fixed;bottom:16px;right:16px;background:var(--paper-2);border:1px solid var(--line);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;opacity:0.5;z-index:50;}
+  #syncAdvanced{border:1px solid var(--line);border-radius:12px;padding:0 12px}
+  #syncAdvanced summary{padding:11px 0;cursor:pointer;color:var(--accent-ink);font-weight:650}
+  #syncAdvanced form{margin:6px 0 12px}
+  #configInput{width:100%;padding:9px 11px;border:1px solid var(--field-border);border-radius:10px;font:inherit;color:var(--ink);background:var(--field);resize:vertical}
+  #setupErr:empty{display:none}
 </style>
 </head>
 <body>
@@ -250,6 +254,7 @@
     <button class="precios" id="openPrices" type="button">Precios y categorías</button>
     <button class="precios" id="toggleTheme" type="button">Modo oscuro</button>
     <button class="precios" id="openTeam" type="button">Equipo</button>
+    <button class="precios" id="openSetup" type="button" aria-haspopup="dialog">Dispositivos</button>
     <label id="professionalControl" for="professionalSelect" hidden>Profesional
       <select id="professionalSelect"></select>
     </label>
@@ -265,8 +270,6 @@
     </div>
   </main>
 </div>
-
-<button class="sync-btn" id="openSetup" title="Sincronizar dispositivos">☁️</button>
 
 <dialog class="agenda-dialog" id="teamDialog" aria-labelledby="teamTitle">
   <h2 id="teamTitle">Equipo</h2>
@@ -430,26 +433,25 @@
   </div>
 </div>
 
-<div class="modal" id="setup" hidden>
-  <div class="card">
-    <h2>Conectar dispositivos</h2>
-    <p>Para que el móvil y el ordenador compartan las mismas citas, se necesita configurar esto <b>una sola vez</b>.</p>
-    <ol style="padding-left:22px;margin:0 0 14px;font-size:16px;">
-      <li>Abre <b>console.firebase.google.com</b> con tu cuenta de Google.</li>
-      <li>Pulsa <b>«Crear proyecto»</b>.</li>
-      <li>Pulsa el icono <b>&lt;/&gt;</b> (Web), ponle apodo y <b>«Registrar app»</b>.</li>
-      <li>Copia el bloque <b>const firebaseConfig</b> y pégalo abajo.</li>
-      <li>En <b>«Realtime Database»</b> → <b>«Crear base de datos»</b> → <b>«Modo de prueba»</b>.</li>
-      <li>Vuelve aquí y pulsa <b>«Conectar»</b>.</li>
-    </ol>
-    <textarea id="configInput" placeholder="Pega aquí el bloque completo" style="width:100%;min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);"></textarea>
-    <div id="setupErr" style="color:var(--red);font-size:16px;margin-top:10px;min-height:1.2em"></div>
-    <div class="btns">
-      <button class="btn btn-secondary" id="cancelSetup">Cancelar</button>
-      <button class="btn btn-primary" id="doConnect">Conectar</button>
-    </div>
+<dialog class="agenda-dialog" id="setup" aria-labelledby="setupTitle">
+  <h2 id="setupTitle">Conectar dispositivos</h2>
+  <p>Conecta tus dispositivos para ver las mismas citas en el móvil y el ordenador.</p>
+  <p id="syncStatus"></p>
+  <details id="syncAdvanced">
+    <summary>Configuración avanzada</summary>
+    <form id="syncForm">
+      <label for="configInput">Configuración de Firebase</label>
+      <textarea id="configInput" rows="4" spellcheck="false" autocapitalize="off"></textarea>
+      <p id="setupErr" role="status"></p>
+      <div class="btns">
+        <button class="btn btn-primary" id="doConnect" type="submit">Conectar</button>
+      </div>
+    </form>
+  </details>
+  <div class="btns">
+    <button class="btn btn-secondary" id="cancelSetup" type="button" autofocus>Cerrar</button>
   </div>
-</div>
+</dialog>
 
 <script>
 (function(){
@@ -1578,24 +1580,51 @@
     fbConnected=true;
     pushPending();
     connectTeam(database);
-    document.getElementById('openSetup').style.opacity = '0.5';
   }
-  
-  document.getElementById('openSetup').addEventListener('click',function(){ setupEl.hidden=false; configInput.focus(); });
-  document.getElementById('cancelSetup').addEventListener('click',function(){ setupEl.hidden=true; setupErr.textContent=''; configInput.value=''; });
-  document.getElementById('doConnect').addEventListener('click',async function(){
-    setupErr.textContent=''; var text=configInput.value.trim();
-    if(!text){ setupErr.textContent='Pega el bloque de configuración.'; return; }
-    var cfg=parseConfig(text); var req=['apiKey','databaseURL','projectId'];
-    for(var i=0;i<req.length;i++){ if(!cfg[req[i]]){ setupErr.textContent='Falta «'+req[i]+'».'; return; } }
-    try{ 
-      setupErr.textContent='Conectando…'; 
-      await connectToFirebase(cfg); 
-      localStorage.setItem(KEY_CFG,JSON.stringify(cfg)); 
-      setupEl.hidden=true; configInput.value=''; setupErr.textContent=''; 
-      noticeEl.textContent='Conectado. Los cambios se guardan solos.'; noticeEl.hidden=false; setTimeout(function(){ noticeEl.hidden=true; },4000); 
+
+  var syncAdvanced=document.getElementById('syncAdvanced'),
+      syncStatus=document.getElementById('syncStatus'),
+      doConnect=document.getElementById('doConnect');
+
+  document.getElementById('openSetup').addEventListener('click',function(){
+    syncStatus.textContent=localStorage.getItem(KEY_CFG)
+      ? 'La sincronización está configurada en este navegador.'
+      : 'Las citas se guardan en este navegador.';
+    setupEl.showModal();
+  });
+  document.getElementById('cancelSetup').addEventListener('click',function(){ setupEl.close(); });
+  setupEl.addEventListener('close',function(){
+    syncAdvanced.open=false;
+    if(doConnect.disabled) return;
+    setupErr.textContent='';
+    configInput.value='';
+  });
+  document.getElementById('syncForm').addEventListener('submit',async function(event){
+    event.preventDefault();
+    if(doConnect.disabled) return;
+    var text=configInput.value.trim();
+    if(!text){ setupErr.textContent='Pega la configuración de Firebase.'; return; }
+    var cfg=parseConfig(text);
+    var missing=['apiKey','databaseURL','projectId'].find(function(key){ return !cfg[key]; });
+    if(missing){ setupErr.textContent='Falta «'+missing+'».'; return; }
+    doConnect.disabled=true;
+    setupErr.textContent='Conectando…';
+    try{
+      await connectToFirebase(cfg);
+      localStorage.setItem(KEY_CFG,JSON.stringify(cfg));
+      setupEl.close();
+      noticeEl.textContent='Conectado. Los cambios se guardan solos.';
+      noticeEl.hidden=false;
+      setTimeout(function(){ noticeEl.hidden=true; },4000);
+    }catch(e){
+      setupErr.textContent='No se pudo conectar: '+(e.message||e);
+    }finally{
+      doConnect.disabled=false;
+      if(!setupEl.open){
+        setupErr.textContent='';
+        configInput.value='';
+      }
     }
-    catch(e){ setupErr.textContent='No se pudo conectar: '+(e.message||e); }
   });
   
   (async function(){ 
