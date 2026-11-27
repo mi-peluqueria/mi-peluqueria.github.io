@@ -23,8 +23,54 @@
 <link rel="icon" href="./mi-peluqueria.png">
 <link rel="apple-touch-icon" href="./mi-peluqueria.png">
 
+<script>
+(function(){
+  try{
+    if(localStorage.getItem('atelier.theme')==='dark'){
+      document.documentElement.dataset.theme='dark';
+      document.querySelector('meta[name="theme-color"]').content='#18141d';
+    }
+  }catch(_){}
+})();
+</script>
+
 <style>
   :root{--paper:#fdfcfb;--paper-2:#f7f3ef;--line:#ece5de;--ink:#2a2230;--ink-muted:#6b5b6f;--violet:#7c5a8f;--violet-soft:#f3edf6;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;--green:#2e7d32;--red:#b00020;}
+  :root{
+    color-scheme:light;
+    --canvas:#f1ebf4;
+    --toolbar:#fbf8fc;
+    --toolbar-border:#e9dfee;
+    --field:#fff;
+    --field-border:#cbb9d2;
+    --accent-ink:#674477;
+    --primary:#674477;
+    --button:#7c5a8f;
+    --backdrop:#2a2230b3;
+    --shadow:#2a22302e;
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --canvas:#141018;
+    --paper:#1c1722;
+    --paper-2:#27202f;
+    --toolbar:#211a29;
+    --toolbar-border:#3b3046;
+    --line:#3b3046;
+    --field:#282031;
+    --field-border:#756381;
+    --ink:#f6eef8;
+    --ink-muted:#c7b8ce;
+    --violet:#cca9eb;
+    --violet-soft:#362743;
+    --accent-ink:#e3c5fa;
+    --primary:#77518e;
+    --button:#77518e;
+    --backdrop:#0a070cc9;
+    --shadow:#0a070c80;
+    --green:#a4dda9;
+    --red:#ffabb7;
+  }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:21px;line-height:1.4;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom);}
   .app{max-width:900px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:var(--paper);}
@@ -37,8 +83,8 @@
   .date{margin-top:2px;font-size:16px;color:var(--ink-muted);text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .status{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;font-size:18px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;}
   .status .dot{opacity:.5}
-  .hoy-row{display:flex;justify-content:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:var(--bar-h,120px);z-index:9;}
-  .hoy,.precios{background:var(--violet);color:#fff;border:none;border-radius:999px;padding:10px 22px;font-size:17px;font-weight:600;cursor:pointer;font-family:var(--font);}
+  .hoy-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:10px 8px;border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:var(--bar-h,120px);z-index:9;}
+  .hoy,.precios{background:var(--button);color:#fff;border:none;border-radius:999px;padding:10px 22px;font-size:17px;font-weight:600;cursor:pointer;font-family:var(--font);}
   .precios{background:var(--paper-2);color:var(--ink);border:1px solid var(--line);}
   .hoy:focus-visible,.precios:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
   .hoy[hidden]{display:none}
@@ -57,16 +103,16 @@
   .slot .text{font-size:22px;color:var(--ink);word-break:break-word;cursor:text;padding:2px 0;}
   .slot .text:focus-visible{outline:3px solid var(--violet);outline-offset:2px;border-radius:4px;}
   .slot .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;}
-  .slot .price-btn{font-family:var(--font);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 12px;border-radius:10px;border:2px solid;font-weight:700;cursor:pointer;line-height:1.1;min-width:78px;background:#fff;color:var(--ink);}
+  .slot .price-btn{font-family:var(--font);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 12px;border-radius:10px;border:2px solid;font-weight:700;cursor:pointer;line-height:1.1;min-width:78px;background:var(--field);color:var(--ink);}
   .slot .price-btn .p{font-size:17px;font-variant-numeric:tabular-nums;}
   .slot .price-btn .c{font-size:10px;font-weight:700;letter-spacing:0.4px;margin-top:2px;text-transform:uppercase;}
   .slot .price-btn:focus-visible{outline:3px solid var(--violet);outline-offset:2px;}
   .slot .cost-txt{color:var(--ink-muted);font-size:14px;}
-  .slot .pay-btn{font-family:var(--font);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;margin-left:auto;border:2px solid;background:#fff;color:var(--ink);}
+  .slot .pay-btn{font-family:var(--font);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;margin-left:auto;border:2px solid;background:var(--field);color:var(--ink);}
   .slot .pay-btn:focus-visible{outline:3px solid var(--violet);outline-offset:2px;}
   .slot .service-name{display:block;color:var(--ink-muted);font-size:14px}
-  .slot .reserved{color:#674477;font-size:15px;font-weight:600}
-  .slot .arrival-btn{font:inherit;padding:8px 12px;border:1px solid #cbb9d2;border-radius:999px;background:#fff;color:#674477;cursor:pointer;font-weight:650}
+  .slot .reserved{color:var(--accent-ink);font-size:15px;font-weight:600}
+  .slot .arrival-btn{font:inherit;padding:8px 12px;border:1px solid var(--field-border);border-radius:999px;background:var(--field);color:var(--accent-ink);cursor:pointer;font-weight:650}
   .slot .arrival-btn:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
   .slot .arrival-status{color:var(--green);font-weight:650}
   .slot.now{background:var(--violet-soft)}
@@ -83,20 +129,25 @@
     .slot .cost-txt{font-size:15px;}
     .dow{font-size:28px}.date{font-size:17px}.status{font-size:19px}
   }
-  html,body{background:#f1ebf4}
+  html,body{background:var(--canvas)}
   .app{box-shadow:0 0 48px #2a223012}
-  .bar{background:#fbf8fc;border-bottom-color:#e9dfee}
+  .bar{background:var(--toolbar);border-bottom-color:var(--toolbar-border)}
   .agenda-brand{color:var(--ink-muted);font-size:12px;font-weight:700;letter-spacing:.075em}
-  .chev{width:48px;height:48px;border-radius:15px;background:#fff;border-color:#e9dfee}
-  .hoy-row{background:#fbf8fc}
+  .chev{width:48px;height:48px;border-radius:15px;background:var(--field);border-color:var(--toolbar-border)}
+  .hoy-row{background:var(--toolbar)}
   .hoy,.precios{min-height:44px}
+  #toggleTheme{padding-inline:14px;white-space:nowrap}
+  #toggleTheme:hover{background:var(--violet-soft)}
+  #professionalControl{flex:0 0 100%;display:flex;justify-content:center;align-items:center;gap:8px;color:var(--ink-muted);font-size:15px}
+  #professionalControl[hidden]{display:none}
+  #professionalSelect{max-width:65%;min-height:44px;padding:6px 10px;border:1px solid var(--field-border);border-radius:10px;background:var(--field);color:var(--ink);font:inherit}
   .status{gap:0 8px}
-  .status .loc{max-width:100%;min-height:44px;padding:0 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit;font-weight:600;color:#674477;background:none;border:0;border-radius:8px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:4px}
+  .status .loc{max-width:100%;min-height:44px;padding:0 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit;font-weight:600;color:var(--accent-ink);background:none;border:0;border-radius:8px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:4px}
   .status .loc:focus-visible,.agenda-dialog button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
-  .slot .content::before{content:'+';display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--violet-soft);color:#674477;font-size:19px;line-height:1}
+  .slot .content::before{content:'+';display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--violet-soft);color:var(--accent-ink);font-size:19px;line-height:1}
   @media(hover:hover){.slot .content:hover,.chev:hover{background:var(--violet-soft);border-radius:10px}}
-  .agenda-dialog{width:min(460px,calc(100% - 28px));max-height:calc(100% - 28px);padding:24px;border:1px solid #e9dfee;border-radius:20px;background:var(--paper);color:var(--ink);font-size:16px;box-shadow:0 16px 48px #2a22302e}
-  .agenda-dialog::backdrop{background:#2a223088}
+  .agenda-dialog{width:min(460px,calc(100% - 28px));max-height:calc(100% - 28px);padding:24px;border:1px solid var(--toolbar-border);border-radius:20px;background:var(--paper);color:var(--ink);font-size:16px;box-shadow:0 16px 48px var(--shadow)}
+  .agenda-dialog::backdrop{background:var(--backdrop)}
   .agenda-dialog h2{margin:0 0 12px;font-size:23px}
   .agenda-dialog p{margin:12px 0;color:var(--ink-muted)}
   .agenda-dialog form{margin-top:18px}
@@ -107,10 +158,13 @@
   #locationMessage:empty{display:none}
   .agenda-dialog .btns{flex-wrap:wrap}
   .agenda-dialog .btn{padding:9px 14px;border:1px solid transparent;border-radius:10px;font:inherit;font-weight:650;cursor:pointer}
-  .agenda-dialog .btn-primary{background:#674477;color:#fff}
+  .agenda-dialog .btn-primary{background:var(--primary);color:#fff}
   .agenda-dialog .btn-secondary{border-color:var(--line);background:var(--paper-2);color:var(--ink)}
-  .agenda-dialog input,.agenda-dialog select{width:100%;min-height:46px;padding:9px 11px;border:1px solid #cbb9d2;border-radius:10px;font:inherit;color:var(--ink);background:#fff}
+  .agenda-dialog input,.agenda-dialog select{width:100%;min-height:46px;padding:9px 11px;border:1px solid var(--field-border);border-radius:10px;font:inherit;color:var(--ink);background:var(--field)}
   .agenda-dialog .field{margin:14px 0}
+  .agenda-dialog .field .check{display:flex;align-items:center;gap:10px;min-height:44px}
+  .agenda-dialog .check input{width:20px;height:20px;min-height:0;accent-color:var(--primary)}
+  #teamMembers{max-height:32vh;overflow-y:auto}
   .appointment-total{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:12px;border-radius:12px;background:var(--violet-soft)}
   .appointment-total output{font-weight:750;font-size:21px}
   .appointment-total small{color:var(--ink-muted)}
@@ -125,8 +179,8 @@
   .day-summary .tag.billed{background:#eceff1;color:#37474f;}
   .day-summary .tag.paid{background:#e8f5e9;color:#1b5e20;}
   .day-summary .tag.pending{background:#fff3e0;color:#bf360c;}
-  .day-summary button{background:var(--violet);color:#fff;border:none;border-radius:999px;padding:8px 16px;font-size:15px;font-family:var(--font);cursor:pointer;white-space:nowrap;}
-  .modal{position:fixed;inset:0;background:rgba(42,34,48,.7);display:flex;align-items:flex-end;justify-content:center;z-index:100;}
+  .day-summary button{background:var(--button);color:#fff;border:none;border-radius:999px;padding:8px 16px;font-size:15px;font-family:var(--font);cursor:pointer;white-space:nowrap;}
+  .modal{position:fixed;inset:0;background:var(--backdrop);display:flex;align-items:flex-end;justify-content:center;z-index:100;}
   .modal[hidden]{display:none}
   .modal .card{background:var(--paper);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:24px 22px 32px;font-size:18px;}
   .modal h2{margin:0 0 12px;font-size:22px}
@@ -134,7 +188,7 @@
   .modal p{margin:0 0 12px;color:var(--ink-muted)}
   .modal .sub{font-size:22px;font-weight:700;color:var(--ink);margin:0 0 16px}
   .modal label{display:block;margin:14px 0;font-size:16px;font-weight:600;color:var(--ink);}
-  .modal label input{display:block;width:100%;margin-top:6px;padding:14px;font-family:var(--font);font-size:24px;text-align:right;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .modal label input{display:block;width:100%;margin-top:6px;padding:14px;font-family:var(--font);font-size:24px;text-align:right;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);font-variant-numeric:tabular-nums;}
   .modal label input:focus{outline:3px solid var(--violet);outline-offset:2px;}
   .modal .total{display:flex;justify-content:space-between;padding:10px 0;font-size:18px;}
   .modal .total.grand{border-top:2px solid var(--ink);font-weight:700;margin-top:6px;}
@@ -153,14 +207,14 @@
   .modal .item .link{font-size:14px;color:var(--violet);text-decoration:underline;cursor:pointer;background:none;border:none;padding:0;font-family:var(--font);margin-top:6px;display:inline-block;}
   .modal .btns{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
   .modal .btn{flex:1 1 auto;min-height:54px;border:none;border-radius:12px;font-size:18px;font-family:var(--font);cursor:pointer;padding:12px 18px;}
-  .modal .btn-primary{background:var(--violet);color:#fff;}
+  .modal .btn-primary{background:var(--button);color:#fff;}
   .modal .btn-secondary{background:var(--paper-2);color:var(--ink);border:1px solid var(--line);}
   .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin:8px 0 16px;}
   .legend .lg{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-weight:600;}
   .legend .lg .dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;}
   .service-row,.service-head{display:grid;grid-template-columns:minmax(0,1fr) 90px repeat(3,60px) 32px;gap:6px;align-items:center;}
   .service-row{padding:8px 0;border-bottom:1px solid var(--line);}
-  .service-row input,.service-row select{font-family:var(--font);font-size:14px;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%;min-width:0;}
+  .service-row input,.service-row select{font-family:var(--font);font-size:14px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);width:100%;min-width:0;}
   .service-row input.num{text-align:right;font-variant-numeric:tabular-nums}
   .service-row select{font-weight:700;cursor:pointer}
   .service-row .del{background:none;border:none;color:var(--red);font-size:22px;cursor:pointer;padding:4px;line-height:1}
@@ -174,7 +228,7 @@
     .service-row select{grid-column:span 2}
     .service-value>span{display:block;color:var(--ink-muted);font-size:12px;margin-bottom:3px}
   }
-  #searchClient{width:100%;font-family:var(--font);font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  #searchClient{width:100%;font-family:var(--font);font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
   .sync-btn{position:fixed;bottom:16px;right:16px;background:var(--paper-2);border:1px solid var(--line);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;opacity:0.5;z-index:50;}
 </style>
 </head>
@@ -194,6 +248,11 @@
   <div class="hoy-row">
     <button class="hoy" id="today" hidden>Hoy</button>
     <button class="precios" id="openPrices" type="button">Precios y categorías</button>
+    <button class="precios" id="toggleTheme" type="button">Modo oscuro</button>
+    <button class="precios" id="openTeam" type="button">Equipo</button>
+    <label id="professionalControl" for="professionalSelect" hidden>Profesional
+      <select id="professionalSelect"></select>
+    </label>
   </div>
   <div id="notice" hidden></div>
   <main id="scroll">
@@ -208,6 +267,26 @@
 </div>
 
 <button class="sync-btn" id="openSetup" title="Sincronizar dispositivos">☁️</button>
+
+<dialog class="agenda-dialog" id="teamDialog" aria-labelledby="teamTitle">
+  <h2 id="teamTitle">Equipo</h2>
+  <form id="teamForm">
+    <div class="field">
+      <label class="check"><input type="checkbox" id="teamEnabled"> Ver una agenda por profesional</label>
+      <p>Las citas que ya tienes están en la agenda principal.</p>
+    </div>
+    <div id="teamMembers"></div>
+    <div class="field">
+      <label for="newProfessional">Añadir profesional</label>
+      <input type="text" id="newProfessional" maxlength="60" autocomplete="off" placeholder="Nombre">
+    </div>
+    <p id="teamMessage" role="status" hidden></p>
+    <div class="btns">
+      <button class="btn btn-secondary" id="closeTeam" type="button">Cancelar</button>
+      <button class="btn btn-primary" type="submit">Guardar equipo</button>
+    </div>
+  </form>
+</dialog>
 
 <dialog class="agenda-dialog" id="locationDialog" aria-labelledby="locationTitle">
   <h2 id="locationTitle">Ubicación</h2>
@@ -363,7 +442,7 @@
       <li>En <b>«Realtime Database»</b> → <b>«Crear base de datos»</b> → <b>«Modo de prueba»</b>.</li>
       <li>Vuelve aquí y pulsa <b>«Conectar»</b>.</li>
     </ol>
-    <textarea id="configInput" placeholder="Pega aquí el bloque completo" style="width:100%;min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);"></textarea>
+    <textarea id="configInput" placeholder="Pega aquí el bloque completo" style="width:100%;min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);"></textarea>
     <div id="setupErr" style="color:var(--red);font-size:16px;margin-top:10px;min-height:1.2em"></div>
     <div class="btns">
       <button class="btn btn-secondary" id="cancelSetup">Cancelar</button>
@@ -375,6 +454,22 @@
 <script>
 (function(){
   'use strict';
+
+  var themeButton=document.getElementById('toggleTheme');
+  var themeColor=document.querySelector('meta[name="theme-color"]');
+
+  function applyTheme(dark){
+    document.documentElement.dataset.theme=dark?'dark':'light';
+    themeColor.content=dark?'#18141d':'#7c5a8f';
+    themeButton.textContent=dark?'Modo claro':'Modo oscuro';
+  }
+
+  applyTheme(document.documentElement.dataset.theme==='dark');
+  themeButton.addEventListener('click',function(){
+    var dark=document.documentElement.dataset.theme!=='dark';
+    applyTheme(dark);
+    try{localStorage.setItem('atelier.theme',dark?'dark':'light');}catch(_){}
+  });
 
   var KEY_MAIN='atelier.agenda.v1', KEY_CITY='atelier.ciudad.v1', KEY_WX='atelier.tiempo.v1',
       KEY_CFG='atelier.firebase.v1', KEY_PENDING='atelier.pending.v1', KEY_HOURS='atelier.hours.v1',
@@ -469,6 +564,72 @@
   try{ var raw=localStorage.getItem(KEY_MAIN); if(raw){ var p=JSON.parse(raw); if(p&&typeof p==='object') data=p; } }catch(_){}
   var pending = {};
   try{ var rp=localStorage.getItem(KEY_PENDING); if(rp){ var pp=JSON.parse(rp); if(pp&&typeof pp==='object') pending=pp; } }catch(_){}
+  var TEAM_KEY='atelier.equipo.v1', TEAM_PENDING_KEY='atelier.equipo.pendiente.v1';
+  var PROFESSIONAL_KEY='atelier.equipo.profesional.v1';
+  var MAIN_PROFESSIONAL='principal', selectedProfessional=MAIN_PROFESSIONAL;
+  try{selectedProfessional=localStorage.getItem(PROFESSIONAL_KEY)||MAIN_PROFESSIONAL;}catch(_){}
+  var teamRef=null, pushingTeam=false;
+
+  function readObject(key){
+    try{
+      var value=JSON.parse(localStorage.getItem(key));
+      if(value&&typeof value==='object'&&!Array.isArray(value)) return value;
+    }catch(_){}
+    return null;
+  }
+  function writeObject(key,value){
+    try{localStorage.setItem(key,JSON.stringify(value));}catch(_){}
+  }
+  function normalizeTeam(value){
+    var members={principal:'Agenda principal'};
+    Object.entries(value?.members||{}).forEach(function([id,name]){
+      if(/^(principal|p[a-z0-9]+)$/.test(id)&&typeof name==='string'&&name.trim()) members[id]=name;
+    });
+    return {
+      enabled:value?.enabled===true,
+      members:members,
+      calendars:value?.calendars||{}
+    };
+  }
+  var team=normalizeTeam(readObject(TEAM_KEY));
+  var teamPending=readObject(TEAM_PENDING_KEY)||{};
+  function activeProfessional(){
+    return team.enabled&&team.members[selectedProfessional]?selectedProfessional:MAIN_PROFESSIONAL;
+  }
+  function selectProfessional(id){
+    selectedProfessional=id;
+    try{localStorage.setItem(PROFESSIONAL_KEY,id);}catch(_){}
+  }
+  function calendarFor(professional=activeProfessional()){
+    return professional===MAIN_PROFESSIONAL?data:team.calendars[professional]||{};
+  }
+  function setCalendarSlot(calendar,iso,time,appointment){
+    if(appointment){
+      if(!calendar[iso]) calendar[iso]={};
+      calendar[iso][time]=appointment;
+    }else if(calendar[iso]){
+      delete calendar[iso][time];
+      if(!Object.keys(calendar[iso]).length) delete calendar[iso];
+    }
+  }
+  function applyTeamValue(state,path,value){
+    var [kind,id,iso,time]=path.split('/');
+    if(kind==='enabled'){
+      state.enabled=value===true;
+    }else if(kind==='members'&&/^(principal|p[a-z0-9]+)$/.test(id)&&typeof value==='string'){
+      state.members[id]=value;
+    }else if(kind==='calendars'&&/^p[a-z0-9]+$/.test(id)&&/^\d{4}-\d{2}-\d{2}$/.test(iso)&&/^\d{2}:\d{2}$/.test(time)){
+      if(!state.calendars[id]) state.calendars[id]={};
+      setCalendarSlot(state.calendars[id],iso,time,value);
+    }
+  }
+  function saveTeamValues(values){
+    Object.keys(values).forEach(function(path){applyTeamValue(team,path,values[path]);});
+    Object.assign(teamPending,values);
+    writeObject(TEAM_KEY,team);
+    writeObject(TEAM_PENDING_KEY,teamPending);
+    pushTeamPending();
+  }
 
   function normalizeAppointment(v){
     if(!v) return null;
@@ -546,6 +707,85 @@
       setupEl=document.getElementById('setup'),setupErr=document.getElementById('setupErr'),
       configInput=document.getElementById('configInput');
 
+  var professionalControl=document.getElementById('professionalControl'),
+      professionalSelect=document.getElementById('professionalSelect'),
+      teamDialog=document.getElementById('teamDialog'),
+      teamEnabled=document.getElementById('teamEnabled'),
+      teamMembers=document.getElementById('teamMembers'),
+      newProfessional=document.getElementById('newProfessional'),
+      teamMessage=document.getElementById('teamMessage');
+
+  function renderProfessionalControl(){
+    professionalControl.hidden=!team.enabled;
+    if(professionalControl.hidden) return;
+    var selected=activeProfessional();
+    professionalSelect.replaceChildren();
+    Object.entries(team.members).forEach(function([id,name]){
+      professionalSelect.add(new Option(name,id));
+    });
+    professionalSelect.value=selected;
+  }
+
+  professionalSelect.addEventListener('change',function(){
+    selectProfessional(professionalSelect.value);
+    render();
+  });
+  document.getElementById('openTeam').addEventListener('click',function(){
+    refreshLocalAppointments();
+    teamEnabled.checked=team.enabled;
+    teamMessage.hidden=true;
+    teamMembers.replaceChildren();
+    Object.entries(team.members).forEach(function([id,name]){
+      var row=document.createElement('div');
+      row.className='field';
+      var label=document.createElement('label');
+      label.htmlFor='member-'+id;
+      label.textContent=id===MAIN_PROFESSIONAL?'Nombre en la agenda principal':name;
+      var input=document.createElement('input');
+      input.type='text';
+      input.id=label.htmlFor;
+      input.dataset.member=id;
+      input.defaultValue=name;
+      input.maxLength=60;
+      input.required=true;
+      row.append(label,input);
+      teamMembers.appendChild(row);
+    });
+    newProfessional.value='';
+    teamDialog.showModal();
+  });
+  document.getElementById('closeTeam').addEventListener('click',function(){teamDialog.close();});
+  document.getElementById('teamForm').addEventListener('submit',function(event){
+    event.preventDefault();
+    refreshLocalAppointments();
+    var values={},names=Object.assign({},team.members);
+    for(var input of teamMembers.querySelectorAll('[data-member]')){
+      var name=input.value.trim();
+      if(!name){input.focus();return;}
+      if(name!==input.defaultValue){
+        names[input.dataset.member]=name;
+        values['members/'+input.dataset.member]=name;
+      }
+    }
+    var addedName=newProfessional.value.trim(),addedId;
+    if(addedName){
+      addedId='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+      names[addedId]=addedName;
+      values['members/'+addedId]=addedName;
+    }
+    var namesList=Object.values(names).map(normalize);
+    if(new Set(namesList).size!==namesList.length){
+      teamMessage.textContent='Cada profesional necesita un nombre distinto en la agenda.';
+      teamMessage.hidden=false;
+      return;
+    }
+    values.enabled=teamEnabled.checked||Boolean(addedId);
+    if(addedId) selectProfessional(addedId);
+    saveTeamValues(values);
+    teamDialog.close();
+    render();
+  });
+
   function allSlots(){ var a=[]; for(var h=hoursRange.start;h<hoursRange.end;h++){a.push(pad(h)+':00');a.push(pad(h)+':30');} return a; }
   function serviceMinutes(value){
     var minutes=Number(value);
@@ -557,12 +797,12 @@
   }
   function endMinutes(time,appt){return minutesAt(time)+serviceMinutes(appt?.service?.duration);}
   function formatTime(minutes){return pad(Math.floor(minutes/60))+':'+pad(minutes%60);}
-  function findOverlap(iso,time,duration,ignoreTime){
+  function findOverlap(iso,time,duration,ignoreTime,professional=activeProfessional()){
     var start=minutesAt(time);
     var end=start+duration;
-    for(var candidate of Object.keys(data[iso]||{}).sort()){
+    for(var candidate of Object.keys(calendarFor(professional)[iso]||{}).sort()){
       if(candidate===ignoreTime||minutesAt(candidate)>=end) continue;
-      var appt=appointmentAt(iso,candidate);
+      var appt=appointmentAt(iso,candidate,professional);
       if(appt&&endMinutes(candidate,appt)>start) return {time:candidate,appt:appt};
     }
     return null;
@@ -570,8 +810,9 @@
   function currentSlot(){ var n=new Date(),h=n.getHours(),m=n.getMinutes()<30?0:30; if(h<hoursRange.start||h>=hoursRange.end) return null; return pad(h)+':'+pad(m); }
   function autoExpandFromData(){
     var s=hoursRange.start,e=hoursRange.end;
-    Object.keys(data).forEach(function(iso){
-      var d=data[iso]; if(!d||typeof d!=='object') return;
+    var calendar=calendarFor();
+    Object.keys(calendar).forEach(function(iso){
+      var d=calendar[iso]; if(!d||typeof d!=='object') return;
       Object.keys(d).forEach(function(t){
         var start=minutesAt(t),appt=appointmentAt(iso,t);
         if(!appt||!Number.isFinite(start)) return;
@@ -583,7 +824,7 @@
   }
 
   function calcDay(iso){
-    var d=data[iso]||{};
+    var d=calendarFor()[iso]||{};
     var items=[],billed=0,paid=0,cost=0,count=0;
     Object.keys(d).sort().forEach(function(t){
       var a=normalizeAppointment(d[t]); if(!a||!a.text) return;
@@ -617,8 +858,9 @@
   }
 
   function render(){
+    renderProfessionalControl();
     autoExpandFromData();
-    var iso=isoDate(currentDate),hoyIso=isoDate(new Date()),day=data[iso]||{};
+    var iso=isoDate(currentDate),hoyIso=isoDate(new Date()),day=calendarFor()[iso]||{};
     dowEl.textContent=DIAS[currentDate.getDay()];
     dateEl.textContent=currentDate.getDate()+' de '+MESES[currentDate.getMonth()]+' de '+currentDate.getFullYear();
     todayBtn.hidden=(iso===hoyIso);
@@ -717,27 +959,27 @@
       resetAttendance=document.getElementById('resetAttendance');
   var occupiedSlot=null;
 
-  function appointmentAt(iso,time){
-    var appt=normalizeAppointment(data[iso]?.[time]);
+  function appointmentAt(iso,time,professional=activeProfessional()){
+    var appt=normalizeAppointment(calendarFor(professional)[iso]?.[time]);
     return appt?.text?appt:null;
   }
 
   function refreshLocalAppointments(){
-    if(fbRef) return;
-    try{
-      var saved=JSON.parse(localStorage.getItem(KEY_MAIN));
-      if(saved&&typeof saved==='object'&&!Array.isArray(saved)) data=saved;
-    }catch(_){}
+    if(!fbRef) data=readObject(KEY_MAIN)||data;
+    if(!teamRef){
+      team=normalizeTeam(readObject(TEAM_KEY)||team);
+      teamPending=readObject(TEAM_PENDING_KEY)||teamPending;
+    }
   }
 
   window.addEventListener('storage',function(event){
-    if(event.key!==KEY_MAIN||fbRef) return;
+    if(event.key!==KEY_MAIN&&event.key!==TEAM_KEY) return;
     refreshLocalAppointments();
     render();
   });
 
-  function openOccupiedSlot(iso,time,appt,draft,bookedTime=time){
-    occupiedSlot={iso:iso,time:time,bookedTime:bookedTime,draft:draft};
+  function openOccupiedSlot(iso,time,appt,draft,bookedTime=time,professional=activeProfessional()){
+    occupiedSlot={iso:iso,time:time,bookedTime:bookedTime,draft:draft,professional:professional};
     occupiedClient.textContent=bookedTime+' · '+(appt.client||appt.text);
     occupiedDetails.hidden=true;
     occupiedMessage.textContent=draft?'La cita se solapa con esta reserva. Puedes llevarla al siguiente hueco.':'';
@@ -750,7 +992,7 @@
 
   viewOccupied.addEventListener('click',function(){
     refreshLocalAppointments();
-    var appt=appointmentAt(occupiedSlot.iso,occupiedSlot.bookedTime);
+    var appt=appointmentAt(occupiedSlot.iso,occupiedSlot.bookedTime,occupiedSlot.professional);
     if(!appt){
       occupiedMessage.textContent='La cita ya no está guardada. Cierra este aviso para ver la agenda.';
       occupiedMessage.hidden=false;
@@ -771,16 +1013,16 @@
   editOccupied.addEventListener('click',function(){
     var slot=occupiedSlot;
     occupiedDialog.close();
-    openAppointment(slot.bookedTime,true,slot.iso);
+    openAppointment(slot.bookedTime,true,slot.iso,null,slot.professional);
   });
 
   resetAttendance.addEventListener('click',function(){
     refreshLocalAppointments();
-    var slot=occupiedSlot,appt=appointmentAt(slot.iso,slot.bookedTime);
+    var slot=occupiedSlot,appt=appointmentAt(slot.iso,slot.bookedTime,slot.professional);
     if(!appt) return;
     delete appt.arrivedAt;
     delete appt.attendedAt;
-    saveAppointment(slot.iso,slot.bookedTime,appt);
+    saveAppointment(slot.iso,slot.bookedTime,appt,slot.professional);
     occupiedDialog.close();
   });
 
@@ -789,7 +1031,7 @@
     var slot=occupiedSlot;
     var duration=slot.draft?.duration||30;
     var next=allSlots().find(function(time){
-      return time>slot.time&&minutesAt(time)+duration<=1440&&!findOverlap(slot.iso,time,duration);
+      return time>slot.time&&minutesAt(time)+duration<=1440&&!findOverlap(slot.iso,time,duration,null,slot.professional);
     });
     if(!next){
       occupiedMessage.textContent='No quedan huecos libres después de esta hora.';
@@ -797,22 +1039,22 @@
       return;
     }
     occupiedDialog.close();
-    openAppointment(next,false,slot.iso,slot.draft);
+    openAppointment(next,false,slot.iso,slot.draft,slot.professional);
   });
   document.getElementById('closeOccupied').addEventListener('click',function(){occupiedDialog.close();});
 
-  function saveAppointment(iso,time,appointment){
-    if(appointment){
-      if(!data[iso]) data[iso]={};
-      data[iso][time]=appointment;
-    }else if(data[iso]){
-      delete data[iso][time];
-      if(!Object.keys(data[iso]).length) delete data[iso];
+  function saveAppointment(iso,time,appointment,professional=activeProfessional()){
+    if(professional===MAIN_PROFESSIONAL){
+      setCalendarSlot(data,iso,time,appointment);
+      persistLocal();
+      pending[iso+'|'+time]=appointment;
+      persistPending();
+      pushPending();
+    }else{
+      var values={};
+      values['calendars/'+professional+'/'+iso+'/'+time]=appointment;
+      saveTeamValues(values);
     }
-    persistLocal();
-    pending[iso+'|'+time]=appointment;
-    persistPending();
-    pushPending();
     render();
   }
 
@@ -822,23 +1064,24 @@
   function markArrival(time){
     var iso=isoDate(currentDate);
     refreshLocalAppointments();
-    var appt=appointmentAt(iso,time);
+    var professional=activeProfessional();
+    var appt=appointmentAt(iso,time,professional);
     if(!appt||appt.attendedAt) return;
     var now=new Date();
     if(appt.arrivedAt){
       appt.attendedAt=now.getTime();
-      saveAppointment(iso,time,appt);
+      saveAppointment(iso,time,appt,professional);
       return;
     }
     appt.arrivedAt=now.getTime();
-    saveAppointment(iso,time,appt);
+    saveAppointment(iso,time,appt,professional);
     if(iso!==isoDate(now)||now.getHours()*60+now.getMinutes()>=minutesAt(time)) return;
-    var previous=Object.keys(data[iso]||{}).sort().reverse().find(function(candidate){
-      var earlier=appointmentAt(iso,candidate);
+    var previous=Object.keys(calendarFor(professional)[iso]||{}).sort().reverse().find(function(candidate){
+      var earlier=appointmentAt(iso,candidate,professional);
       return minutesAt(candidate)<minutesAt(time)&&earlier&&!earlier.attendedAt;
     });
     if(!previous) return;
-    var earlier=appointmentAt(iso,previous);
+    var earlier=appointmentAt(iso,previous,professional);
     document.getElementById('arrivalMessage').textContent='La cita de las '+previous+' ('+(earlier.client||earlier.text)+') está pendiente de atender.';
     arrivalDialog.showModal();
   }
@@ -881,23 +1124,23 @@
     appointmentNotice.hidden=!(appt?.paid&&!draft.paid);
   }
 
-  function openAppointment(time,allowEdit,iso=isoDate(currentDate),carriedDraft=null){
+  function openAppointment(time,allowEdit,iso=isoDate(currentDate),carriedDraft=null,professional=activeProfessional()){
     if(appointmentDialog.open) return;
     refreshLocalAppointments();
-    var previous=appointmentAt(iso,time);
+    var previous=appointmentAt(iso,time,professional);
     if(previous&&!allowEdit){
-      openOccupiedSlot(iso,time,previous,carriedDraft);
+      openOccupiedSlot(iso,time,previous,carriedDraft,time,professional);
       return;
     }
-    var blocked=!previous&&findOverlap(iso,time,1);
+    var blocked=!previous&&findOverlap(iso,time,1,null,professional);
     if(blocked){
-      openOccupiedSlot(iso,time,blocked.appt,carriedDraft,blocked.time);
+      openOccupiedSlot(iso,time,blocked.appt,carriedDraft,blocked.time,professional);
       return;
     }
     var date=new Date(iso+'T12:00:00');
-    appointmentEdit={iso:iso,time:time,previous:previous};
+    appointmentEdit={iso:iso,time:time,previous:previous,professional:professional};
     document.getElementById('appointmentTitle').textContent=previous?'Editar cita':'Nueva cita';
-    document.getElementById('appointmentDate').textContent=DIAS[date.getDay()]+' · '+date.getDate()+' de '+MESES[date.getMonth()]+' de '+date.getFullYear()+' · '+time;
+    document.getElementById('appointmentDate').textContent=DIAS[date.getDay()]+' · '+date.getDate()+' de '+MESES[date.getMonth()]+' de '+date.getFullYear()+' · '+time+(team.enabled?' · '+team.members[professional]:'');
     appointmentClient.value=previous?.client||previous?.text||carriedDraft?.text||'';
     appointmentService.replaceChildren(new Option('Sin seleccionar',''));
     services.forEach(function(service){
@@ -922,16 +1165,16 @@
     if(!appointmentEdit) return;
     var text=appointmentClient.value.replace(/\s+/g,' ').trim();
     if(!text){appointmentClient.focus();return;}
-    var iso=appointmentEdit.iso,time=appointmentEdit.time;
+    var iso=appointmentEdit.iso,time=appointmentEdit.time,professional=appointmentEdit.professional;
     appointmentConflict.hidden=true;
     refreshLocalAppointments();
-    var previous=appointmentAt(iso,time);
+    var previous=appointmentAt(iso,time,professional);
     if(previous&&previous.text!==appointmentEdit.previous?.text){
       var chosen=selectedService(appointmentEdit.previous);
       var carry=appointmentEdit.previous?null:{text:text,service:appointmentService.value,duration:serviceMinutes(chosen?.duration)};
       appointmentDialog.close();
       render();
-      openOccupiedSlot(iso,time,previous,carry);
+      openOccupiedSlot(iso,time,previous,carry,time,professional);
       return;
     }
     if(!previous&&appointmentEdit.previous){
@@ -947,7 +1190,7 @@
       return;
     }
     var duration=serviceMinutes(draft.service?.duration);
-    var overlap=findOverlap(iso,time,duration,previous?time:null);
+    var overlap=findOverlap(iso,time,duration,previous?time:null,professional);
     if(overlap){
       if(previous){
         appointmentConflict.textContent='El servicio se solapa con la cita de las '+overlap.time+'. Ajusta el servicio o elige otro hueco.';
@@ -955,7 +1198,7 @@
       }else{
         appointmentDialog.close();
         render();
-        openOccupiedSlot(iso,time,overlap.appt,{text:text,service:appointmentService.value,duration:duration},overlap.time);
+        openOccupiedSlot(iso,time,overlap.appt,{text:text,service:appointmentService.value,duration:duration},overlap.time,professional);
       }
       return;
     }
@@ -963,48 +1206,52 @@
     draft.price=amounts.price;
     draft.cost=amounts.cost;
     appointmentDialog.close();
-    saveAppointment(iso,time,draft);
+    saveAppointment(iso,time,draft,professional);
   });
   document.getElementById('cancelAppointment').addEventListener('click',function(){appointmentDialog.close();});
   deleteAppointment.addEventListener('click',function(){
     if(!appointmentEdit||!window.confirm('¿Borrar esta cita?')) return;
-    var iso=appointmentEdit.iso,time=appointmentEdit.time;
+    var iso=appointmentEdit.iso,time=appointmentEdit.time,professional=appointmentEdit.professional;
     refreshLocalAppointments();
-    var current=appointmentAt(iso,time);
+    var current=appointmentAt(iso,time,professional);
     appointmentDialog.close();
     if(current?.text!==appointmentEdit.previous?.text){
       render();
-      if(current) openOccupiedSlot(iso,time,current,null);
+      if(current) openOccupiedSlot(iso,time,current,null,time,professional);
       return;
     }
-    saveAppointment(iso,time,null);
+    saveAppointment(iso,time,null,professional);
   });
 
   var priceEdit={iso:null,time:null};
   function openPriceEditor(time){
-    var iso=isoDate(currentDate); var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
+    refreshLocalAppointments();
+    var iso=isoDate(currentDate),professional=activeProfessional(); var appt=appointmentAt(iso,time,professional); if(!appt) return;
     var amounts=appointmentAmounts(appt);
-    priceEdit={iso:iso,time:time}; priceSub.textContent=appt.text;
+    priceEdit={iso:iso,time:time,professional:professional}; priceSub.textContent=appt.text;
     priceInput.value=amounts.price; costInput.value=amounts.cost;
     priceModal.hidden=false; setTimeout(function(){priceInput.focus();priceInput.select();},0);
   }
   document.getElementById('savePrice').addEventListener('click',function(){
     var iso=priceEdit.iso,time=priceEdit.time; if(!iso||!time) return;
-    var appt=normalizeAppointment((data[iso]||{})[time]); if(!appt) return;
+    refreshLocalAppointments();
+    var appt=appointmentAt(iso,time,priceEdit.professional); if(!appt) return;
     var p=parseNum(priceInput.value); if(p===null) p=0; var c=parseNum(costInput.value); if(c===null) c=0;
     appt.price=p; appt.cost=c;
-    priceModal.hidden=true; priceEdit={iso:null,time:null};
-    saveAppointment(iso,time,appt);
+    priceModal.hidden=true;
+    saveAppointment(iso,time,appt,priceEdit.professional);
+    priceEdit={iso:null,time:null};
   });
   document.getElementById('cancelPrice').addEventListener('click',function(){ priceModal.hidden=true; priceEdit={iso:null,time:null}; });
 
   var payEdit=null;
   var payMethod=document.getElementById('payMethod'),confirmPay=document.getElementById('confirmPay');
   function openPayPicker(time){
-    var iso=isoDate(currentDate);
-    var appt=normalizeAppointment((data[iso]||{})[time]);
+    refreshLocalAppointments();
+    var iso=isoDate(currentDate),professional=activeProfessional();
+    var appt=appointmentAt(iso,time,professional);
     if(!appt) return;
-    payEdit={iso:iso,time:time};
+    payEdit={iso:iso,time:time,professional:professional};
     paySub.textContent=appt.text+' · '+fmtEuro(appointmentAmounts(appt).price)+' · '+paymentLabel(appt);
     document.getElementById('pendingPaymentOption').hidden=!appt.paid;
     payMethod.value=appt.paid&&appt.method?appt.method:'';
@@ -1018,13 +1265,14 @@
     event.preventDefault();
     if(!payEdit||!payMethod.value) return;
     var iso=payEdit.iso,time=payEdit.time;
-    var appt=normalizeAppointment((data[iso]||{})[time]);
+    refreshLocalAppointments();
+    var appt=appointmentAt(iso,time,payEdit.professional);
     if(appt){
       appt.paid=payMethod.value!=='pendiente';
       appt.method=appt.paid?payMethod.value:null;
       if(appt.paid) appt.paidAt=appt.paidAt||Date.now();
       else delete appt.paidAt;
-      saveAppointment(iso,time,appt);
+      saveAppointment(iso,time,appt,payEdit.professional);
     }
     payModal.close();
   });
@@ -1093,8 +1341,9 @@
 
   function openHistory(name){
     var results=[];
-    Object.keys(data).sort().forEach(function(iso){
-      var day=data[iso];
+    var calendar=calendarFor();
+    Object.keys(calendar).sort().forEach(function(iso){
+      var day=calendar[iso];
       Object.keys(day).sort().forEach(function(t){
         var a=normalizeAppointment(day[t]); if(!a||!a.text) return;
         if(normalize(a.client||a.text).indexOf(normalize(name))!==-1){
@@ -1130,8 +1379,9 @@
 
   searchClient.addEventListener('input',function(){
     var q=searchClient.value.trim(); if(!q){ searchResults.innerHTML=''; return; } var found=Object.create(null);
-    Object.keys(data).forEach(function(iso){
-      var day=data[iso];
+    var calendar=calendarFor();
+    Object.keys(calendar).forEach(function(iso){
+      var day=calendar[iso];
       Object.keys(day).forEach(function(t){
         var a=normalizeAppointment(day[t]); if(!a||!a.text) return;
         if(normalize(a.client||a.text).indexOf(normalize(q))!==-1){
@@ -1253,11 +1503,51 @@
       pushingPending=false;
     }
   }
+  async function pushTeamPending(){
+    if(!teamRef||pushingTeam) return;
+    var reference=teamRef;
+    pushingTeam=true;
+    try{
+      while(reference===teamRef&&Object.keys(teamPending).length){
+        var changes=Object.assign({},teamPending);
+        await reference.update(changes);
+        if(reference!==teamRef) return;
+        Object.keys(changes).forEach(function(path){
+          if(teamPending[path]===changes[path]) delete teamPending[path];
+        });
+        writeObject(TEAM_PENDING_KEY,teamPending);
+      }
+    }catch(_){
+      // Se conserva la cola local si la conexión o los permisos no permiten escribir.
+    }finally{
+      pushingTeam=false;
+    }
+  }
+  async function connectTeam(database){
+    var reference=database.ref('atelier/equipo');
+    try{
+      await reference.once('value');
+      teamRef=reference;
+      reference.on('value',function(snapshot){
+        if(teamRef!==reference) return;
+        var next=normalizeTeam(snapshot.val());
+        Object.keys(teamPending).forEach(function(path){applyTeamValue(next,path,teamPending[path]);});
+        team=next;
+        writeObject(TEAM_KEY,team);
+        render();
+      },function(){
+        if(teamRef===reference) teamRef=null;
+      });
+      pushTeamPending();
+    }catch(_){}
+  }
   async function connectToFirebase(cfg){
     await loadFirebaseScripts();
+    teamRef=null;
     try{ if(window.firebase.apps&&window.firebase.apps.length) await window.firebase.app().delete(); }catch(_){}
     window.firebase.initializeApp(cfg);
-    fbRef=window.firebase.database().ref('atelier/agenda');
+    var database=window.firebase.database();
+    fbRef=database.ref('atelier/agenda');
     var snap=await fbRef.once('value');
     var remote=snap.val()||{};
     var remoteCount=0;
@@ -1287,6 +1577,7 @@
     },function(){ fbConnected=false; });
     fbConnected=true;
     pushPending();
+    connectTeam(database);
     document.getElementById('openSetup').style.opacity = '0.5';
   }
   
@@ -1311,6 +1602,8 @@
     try{ var cfgText=localStorage.getItem(KEY_CFG); if(cfgText){ await connectToFirebase(JSON.parse(cfgText)); } }catch(_){} 
     setInterval(pushPending,15000); 
     window.addEventListener('online',pushPending); 
+    setInterval(pushTeamPending,15000);
+    window.addEventListener('online',pushTeamPending);
   })();
 
   // --- FIN FIREBASE ---
