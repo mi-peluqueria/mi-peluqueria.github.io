@@ -15,21 +15,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publicar:
+  preparar:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.pages.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/configure-pages@v5
+        with:
+          persist-credentials: false
+      - uses: actions/configure-pages@v6
       - name: Preparar la agenda y su icono
         run: |
           mkdir sitio
           cp index.html sitio/index.html
           base64 --decode mi-peluqueria.png.base64 > sitio/mi-peluqueria.png
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: sitio
-      - uses: actions/deploy-pages@v4
+
+  publicar:
+    needs: preparar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v5
         id: pages
