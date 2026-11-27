@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "MI PELUQUERÍA",
+  "short_name": "MI PELUQUERÍA",
+  "description": "Agenda de citas",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#7c5a8f",
+  "background_color": "#fdfcfb",
+  "icons": [
+    { "src": "./mi-peluqueria-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./mi-peluqueria.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
